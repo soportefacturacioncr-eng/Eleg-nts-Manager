@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegants Manager - Panel VIP</title>
+    <style>
+        :root { --primary: #d4af37; --secondary: #1a1a1a; --bg: #f4f4f4; --glass: rgba(255, 255, 255, 0.9); --info: #3498db; --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        body::after { content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 400px; height: 400px; background: url('logo.png') no-repeat center center; background-size: contain; opacity: 0.08; z-index: -1; pointer-events: none; }
+        
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--secondary); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; }
+        
+        .tabs { display: flex; background: var(--secondary); position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--primary); }
+        .tab-btn { flex: 1; padding: 15px; color: white; border: none; background: none; font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; }
+        .tab-btn.active { background: rgba(212, 175, 55, 0.2); color: var(--primary); }
+        
+        .content { padding: 15px; display: none; }
+        .content.active { display: block; }
+        
+        .card { background: var(--glass); backdrop-filter: blur(8px); padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); }
+        h2 { color: var(--secondary); font-size: 1em; border-left: 4px solid var(--primary); padding-left: 10px; margin-top: 0; text-transform: uppercase; }
+        
+        label { display: block; margin-top: 10px; font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
+        input, select, textarea, .btn-main { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .btn-main { background: var(--secondary); color: var(--primary); border: 2px solid var(--primary); font-weight: bold; cursor: pointer; margin-top: 15px; }
+
+        .item-row { display: flex; flex-direction: column; gap: 8px; padding: 15px; background: white; border-radius: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid transparent; }
+        
+        .status-badge { font-size: 10px; padding: 4px 10px; border-radius: 20px; color: white; font-weight: bold; text-transform: uppercase; }
+        .st-pendiente { background: var(--warning); }
+        .st-despachado { background: var(--info); }
+        .st-entregado { background: var(--success); }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-body { background: white; width: 92%; max-width: 450px; padding: 25px; border-radius: 25px; max-height: 85vh; overflow-y: auto; position: relative; }
+        
+        .chip-bar { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .chip { padding: 8px 15px; background: #eee; border-radius: 20px; font-size: 10px; border: none; cursor: pointer; white-space: nowrap; }
+        .chip.active { background: var(--secondary); color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <h1 style="color: var(--primary); font-style: italic;">Elegánts</h1>
+        <input type="password" id="pin-input" placeholder="****" inputmode="numeric" style="padding:15px; text-align:center; border-radius:12px; border:none; letter-spacing:5px;">
+        <button onclick="verificarAcceso()" class="btn-main" style="width:200px; margin-top:20px;">ENTRAR</button>
+    </div>
+
+    <div id="modal-cobro" class="modal-overlay">
+        <div class="modal-body">
+            <h2>Procesar Venta</h2>
+            <p id="info-venta" style="font-size: 13px; color: #666;"></p>
+            <label>Cliente:</label>
+            <select id="select-cliente-venta"></select>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <select id="tipo-venta"><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>
+                <select id="estado-logistica"><option value="Pendiente">En Espera</option><option value="Despachado">Despachado</option></select>
+            </div>
+            <button onclick="procesarVenta()" class="btn-main" style="background:var(--success); color:white; border:none;">Confirmar Venta</button>
+            <button onclick="cerrarModales()" class="btn-main" style="background:#999; color:white; border:none;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modal-editar-perfume" class="modal-overlay">
+        <div class="modal-body">
+            <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+            <h2>Modificar Perfume</h2>
+            <form id="form-editar-p">
+                <input type="hidden" id="e-id">
+                <input type="hidden" id="e-img-actual">
+                <label>Nombre:</label><input type="text" id="e-nombre" required>
+                <label>Precio:</label><input type="number" id="e-precio" required>
+                <label>Descripción:</label><textarea id="e-desc"></textarea>
+                <label>Link Video:</label><input type="text" id="e-video">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div><label>Categoría:</label><select id="e-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option></select></div>
+                    <div><label>Estilo:</label><select id="e-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho">Nicho</option><option value="Económicos">Inspiración</option></select></div>
+                </div>
+                <label>Mejor Ocasión:</label><select id="e-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Gala">Noche / Gala</option></select>
+                <label>Imagen (Opcional):</label><input type="file" id="e-file" accept="image/*">
+                <button type="submit" class="btn-main">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-perfil" class="modal-overlay">
+        <div class="modal-body">
+            <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+            <h2 id="perfil-nombre">Cargando...</h2>
+            <div class="card" style="text-align:center; background:#f9f9f9; margin-top:10px;">
+                <small>ESTADO DE CUENTA</small>
+                <h1 id="perfil-saldo" style="margin:5px 0; color:var(--danger);">₡0</h1>
+                <div id="area-abono" style="display:none; margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
+                    <input type="number" id="monto-abono" placeholder="Monto a abonar">
+                    <button onclick="registrarAbono()" class="btn-main" style="background:var(--success); color:white; border:none;">Aplicar Abono</button>
+                </div>
+                <button id="btn-show-abono" onclick="this.style.display='none'; document.getElementById('area-abono').style.display='block'" style="background:none; border:none; color:var(--info); font-size:12px; cursor:pointer;">+ REGISTRAR ABONO</button>
+            </div>
+            <h3>Historial de Pedidos</h3>
+            <div id="perfil-historial"></div>
+        </div>
+    </div>
+
+    <div id="manager-content" style="display:none;">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'tab-inventario')">Catálogo</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-pedidos')">Logística</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-clientes')">Clientes</button>
+        </div>
+
+        <div id="tab-inventario" class="content active">
+            <div class="card">
+                <h2>Ingreso de Fragancia</h2>
+                <form id="form-perfume">
+                    <input type="text" id="p-nombre" placeholder="Nombre" required>
+                    <input type="number" id="p-precio" placeholder="Precio (₡)" required>
+                    <textarea id="p-desc" placeholder="Notas de la fragancia..."></textarea>
+                    <input type="text" id="p-video" placeholder="Link video (TikTok/YouTube)">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label>Categoría:</label><select id="p-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option></select></div>
+                        <div><label>Estilo:</label><select id="p-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho">Nicho</option><option value="Económicos">Inspiración</option></select></div>
+                    </div>
+                    <label>Mejor Ocasión:</label><select id="p-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Gala">Noche / Gala</option></select>
+                    <label>Foto:</label><input type="file" id="p-file" accept="image/*" required>
+                    <button type="submit" id="btn-p" class="btn-main">Guardar en Catálogo</button>
+                </form>
+            </div>
+            <div id="lista-inventario"></div>
+        </div>
+
+        <div id="tab-pedidos" class="content">
+            <div class="chip-bar">
+                <button onclick="filtrarLogi('Todos', this)" class="chip active">Todos</button>
+                <button onclick="filtrarLogi('Pendiente', this)" class="chip">Espera</button>
+                <button onclick="filtrarLogi('Despachado', this)" class="chip">Camino</button>
+                <button onclick="filtrarLogi('Entregado', this)" class="chip">Entregados</button>
+            </div>
+            <div id="lista-pedidos"></div>
+        </div>
+
+        <div id="tab-clientes" class="content">
+            <div class="card">
+                <h2>Nuevo Cliente</h2>
+                <form id="form-cliente">
+                    <input type="text" id="c-nombre" placeholder="Nombre" required>
+                    <input type="tel" id="c-tel" placeholder="WhatsApp" required>
+                    <button type="submit" class="btn-main">Registrar</button>
+                </form>
+            </div>
+            <div id="lista-clientes"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, increment, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjFHWA9gA-yNVlFi-sXCl8anbMJhPrTGs",
+            authDomain: "elegants-40696.firebaseapp.com",
+            projectId: "elegants-40696",
+            storageBucket: "elegants-40696.firebasestorage.app",
+            messagingSenderId: "262268889124",
+            appId: "1:262268889124:web:15b81eee4052d6c73f90b1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let cClientes = []; let cPedidos = []; let cProds = [];
+        let pSel = null; let cIdActivo = null;
+
+        window.verificarAcceso = () => {
+            if (document.getElementById("pin-input").value === "2652") {
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("manager-content").style.display = "block";
+                cargarTodo();
+            } else { alert("Acceso Denegado"); }
+        };
+
+        async function cargarTodo() { cargarInventario(); cargarClientes(); cargarPedidos(); }
+
+        window.openTab = (evt, name) => {
+            document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById(name).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        };
+
+        // --- INVENTARIO ---
+        async function cargarInventario() {
+            const snap = await getDocs(query(collection(db, "perfumes"), orderBy("fecha", "desc")));
+            const div = document.getElementById("lista-inventario");
+            div.innerHTML = ""; cProds = [];
+            snap.forEach(d => {
+                const p = d.data(); p.id = d.id; cProds.push(p);
+                div.innerHTML += `
+                    <div class="item-row">
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <img src="${p.imagen}" style="width:65px; height:65px; border-radius:10px; object-fit:cover;">
+                            <div style="flex:1">
+                                <strong>${p.nombre}</strong><br><span style="color:var(--primary); font-weight:bold;">₡${p.precio}</span><br>
+                                <small>${p.categoria || ''} | ${p.subcategoria || ''}</small>
+                            </div>
+                            <div style="text-align:right;">
+                                <button onclick="abrirVenta('${p.nombre}', ${p.precio})" class="btn-main" style="width:auto; margin:0; padding:6px 15px; font-size:11px;">VENDER</button>
+                                <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:15px;">
+                                    <span onclick="abrirEditarP('${p.id}')" style="cursor:pointer; font-size:18px;">✏️</span>
+                                    <span onclick="borrarP('${p.id}')" style="cursor:pointer; font-size:18px;">🗑️</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.abrirEditarP = (id) => {
+            const p = cProds.find(x => x.id === id);
+            document.getElementById("e-id").value = p.id;
+            document.getElementById("e-nombre").value = p.nombre;
+            document.getElementById("e-precio").value = p.precio;
+            document.getElementById("e-desc").value = p.descripcion || "";
+            document.getElementById("e-video").value = p.video || "";
+            document.getElementById("e-cat").value = p.categoria || "Caballero";
+            document.getElementById("e-subcat").value = p.subcategoria || "Diseñador";
+            document.getElementById("e-uso").value = p.uso || "Sport / Diario";
+            document.getElementById("e-img-actual").value = p.imagen;
+            document.getElementById("modal-editar-perfume").style.display = "flex";
+        };
+
+        document.getElementById("form-editar-p").onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("e-id").value;
+            const file = document.getElementById("e-file").files[0];
+            let url = document.getElementById("e-img-actual").value;
+            if(file) {
+                const sRef = ref(storage, `perfumes/${Date.now()}_${file.name}`);
+                const snap = await uploadBytes(sRef, file);
+                url = await getDownloadURL(snap.ref);
+            }
+            await updateDoc(doc(db, "perfumes", id), {
+                nombre: document.getElementById("e-nombre").value,
+                precio: Number(document.getElementById("e-precio").value),
+                descripcion: document.getElementById("e-desc").value,
+                video: document.getElementById("e-video").value,
+                categoria: document.getElementById("e-cat").value,
+                subcategoria: document.getElementById("e-subcat").value,
+                uso: document.getElementById("e-uso").value,
+                imagen: url
+            });
+            cerrarModales(); cargarInventario();
+        };
+
+        window.borrarP = async (id) => { if(confirm("¿Eliminar perfume?")) { await deleteDoc(doc(db, "perfumes", id)); cargarInventario(); } };
+
+        // --- CLIENTES ---
+        async function cargarClientes() {
+            const snap = await getDocs(collection(db, "clientes"));
+            cClientes = []; const sel = document.getElementById("select-cliente-venta");
+            sel.innerHTML = "";
+            snap.forEach(d => {
+                const c = {id: d.id, ...d.data()}; cClientes.push(c);
+                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+            });
+            const div = document.getElementById("lista-clientes"); div.innerHTML = "";
+            cClientes.forEach(c => {
+                div.innerHTML += `
+                    <div class="item-row" style="border-left-color:${c.saldo > 0 ? 'var(--danger)' : '#ccc'}">
+                        <div onclick="abrirPerfil('${c.id}')" style="cursor:pointer"><strong>${c.nombre}</strong><br><small>Saldo: ₡${c.saldo || 0}</small></div>
+                        <a href="https://wa.me/506${c.telefono}" target="_blank" class="btn-wa">WhatsApp</a>
+                    </div>`;
+            });
+        }
+
+        window.abrirPerfil = async (id) => {
+            cIdActivo = id; const cli = cClientes.find(x => x.id === id);
+            document.getElementById("perfil-nombre").innerText = cli.nombre;
+            document.getElementById("perfil-saldo").innerText = `₡${cli.saldo || 0}`;
+            const histDiv = document.getElementById("perfil-historial"); histDiv.innerHTML = "Cargando...";
+            document.getElementById("modal-perfil").style.display = "flex";
+            const q = query(collection(db, "pedidos"), where("idCliente", "==", id), orderBy("fecha", "desc"));
+            const snap = await getDocs(q); histDiv.innerHTML = snap.empty ? "Sin compras." : "";
+            snap.forEach(d => {
+                const p = d.data();
+                histDiv.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:12px; display:flex; justify-content:space-between;">
+                    <span>${p.producto} (${p.tipo})</span><strong>₡${p.total}</strong>
+                </div>`;
+            });
+        };
+
+        window.registrarAbono = async () => {
+            const m = Number(document.getElementById("monto-abono").value);
+            if(m > 0) {
+                await updateDoc(doc(db, "clientes", cIdActivo), { saldo: increment(-m) });
+                cerrarModales(); cargarTodo(); alert("Abono aplicado.");
+            }
+        };
+
+        // --- VENTAS Y LOGÍSTICA ---
+        window.abrirVenta = (n, p) => {
+            pSel = { nombre: n, precio: p };
+            document.getElementById("info-venta").innerText = `${n} - ₡${p}`;
+            document.getElementById("modal-cobro").style.display = "flex";
+        };
+
+        window.procesarVenta = async () => {
+            const idC = document.getElementById("select-cliente-venta").value;
+            const cli = cClientes.find(x => x.id === idC);
+            const tipo = document.getElementById("tipo-venta").value;
+            const logi = document.getElementById("estado-logistica").value;
+            if(tipo === 'Crédito') await updateDoc(doc(db, "clientes", idC), { saldo: increment(pSel.precio) });
+            await addDoc(collection(db, "pedidos"), {
+                idCliente: idC, cliente: cli.nombre, producto: pSel.nombre,
+                total: pSel.precio, tipo: tipo, logistica: logi, fecha: new Date()
+            });
+            cerrarModales(); cargarTodo(); alert("Venta registrada.");
+        };
+
+        async function cargarPedidos() {
+            const snap = await getDocs(query(collection(db, "pedidos"), orderBy("fecha", "desc")));
+            cPedidos = []; snap.forEach(d => { const p = d.data(); p.id = d.id; cPedidos.push(p); });
+            renderPedidos(cPedidos);
+        }
+
+        function renderPedidos(data) {
+            const div = document.getElementById("lista-pedidos"); div.innerHTML = "";
+            data.forEach(p => {
+                const logi = p.logistica || 'Pendiente';
+                div.innerHTML += `
+                    <div class="item-row">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${p.cliente || 'Desconocido'}</strong>
+                            <span class="status-badge st-${logi.toLowerCase()}">${logi}</span>
+                        </div>
+                        <small>${p.producto || 'Sin nombre'} - ₡${p.total} (${p.tipo || 'Venta'})</small>
+                        ${logi !== 'Entregado' ? `<button onclick="marcarE('${p.id}', 'Entregado')" style="font-size:10px; margin-top:5px; padding:5px;">Marcar Entregado</button>` : ''}
+                    </div>`;
+            });
+        }
+
+        window.marcarE = async (id, est) => { await updateDoc(doc(db, "pedidos", id), { logistica: est }); cargarPedidos(); };
+        window.filtrarLogi = (est, btn) => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); btn.classList.add('active');
+            renderPedidos(est === 'Todos' ? cPedidos : cPedidos.filter(p => p.logistica === est));
+        };
+
+        // --- SUBIR ---
+        document.getElementById("form-perfume").onsubmit = async (e) => {
+            e.preventDefault(); const btn = document.getElementById("btn-p");
+            btn.innerText = "Subiendo..."; btn.disabled = true;
+            const file = document.getElementById("p-file").files[0];
+            const sRef = ref(storage, `perfumes/${Date.now()}_${file.name}`);
+            const snap = await uploadBytes(sRef, file);
+            const url = await getDownloadURL(snap.ref);
+            await addDoc(collection(db, "perfumes"), {
+                nombre: document.getElementById("p-nombre").value,
+                precio: Number(document.getElementById("p-precio").value),
+                descripcion: document.getElementById("p-desc").value,
+                video: document.getElementById("p-video").value,
+                categoria: document.getElementById("p-cat").value,
+                subcategoria: document.getElementById("p-subcat").value,
+                uso: document.getElementById("p-uso").value,
+                imagen: url, fecha: new Date()
+            });
+            document.getElementById("form-perfume").reset(); cargarTodo();
+            btn.innerText = "Guardar en Catálogo"; btn.disabled = false;
+        };
+
+        document.getElementById("form-cliente").onsubmit = async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "clientes"), {
+                nombre: document.getElementById("c-nombre").value,
+                telefono: document.getElementById("c-tel").value,
+                saldo: 0
+            });
+            document.getElementById("form-cliente").reset(); cargarClientes();
+        };
+
+        window.cerrarModales = () => { document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none"); };
+    </script>
+</body>
+</html>
