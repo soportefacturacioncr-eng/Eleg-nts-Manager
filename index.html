@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elegánts Manager - Edras VIP</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Elegánts">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="theme-color" content="#1a1a1a">
+
+    <style>
+        :root { 
+            --primary: #d4af37; --secondary: #1a1a1a; --bg: #0f0f0f; 
+            --card-bg: rgba(255, 255, 255, 0.98); --info: #3498db; 
+            --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; --order: #9b59b6;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); margin: 0; padding: 0; 
+            display: flex; justify-content: center; color: #333;
+        }
+
+        /* CONTENEDOR APP */
+        .app-container {
+            width: 100%; max-width: 500px; min-height: 100vh;
+            background: #f8f9fa; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* LOGIN */
+        #login-screen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--secondary); color: white; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 4000; padding: 20px; box-sizing: border-box;
+        }
+
+        .login-logo {
+            width: 200px; height: 200px; object-fit: contain; margin-bottom: 25px;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+        }
+
+        /* NAVEGACIÓN */
+        .tabs { 
+            display: flex; background: var(--secondary); position: sticky; top: 0; z-index: 100; 
+            border-bottom: 3px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .tab-btn { 
+            flex: 1; padding: 18px 5px; color: #888; border: none; background: none; 
+            font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; 
+        }
+        .tab-btn.active { color: var(--primary); background: rgba(212, 175, 55, 0.1); }
+        
+        .content { padding: 20px; display: none; position: relative; z-index: 1; }
+        .content.active { display: block; }
+        
+        /* TARJETAS */
+        .card { 
+            background: var(--card-bg); padding: 20px; border-radius: 28px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06); margin-bottom: 20px; border: 1px solid #fff; 
+        }
+        h2 { color: var(--secondary); font-size: 1.1em; border-left: 5px solid var(--primary); padding-left: 12px; margin-top: 0; text-transform: uppercase; }
+        label { display: block; margin-top: 10px; font-size: 10px; font-weight: bold; color: #999; }
+        input, select, textarea { width: 100%; padding: 14px; margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 15px; box-sizing: border-box; }
+        
+        .btn-main { 
+            background: var(--secondary); color: var(--primary); border: 2px solid var(--primary); 
+            font-weight: bold; cursor: pointer; margin-top: 15px; padding: 15px; 
+            border-radius: 14px; width: 100%; font-size: 14px; transition: 0.2s;
+        }
+        .btn-main:active { transform: scale(0.97); background: var(--primary); color: #000; }
+
+        .item-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 18px; background: white; border-radius: 20px; margin-bottom: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 6px solid var(--primary); 
+        }
+        
+        .btn-wa-right { 
+            background: #25d366; color: white; width: 52px; height: 52px; 
+            border-radius: 16px; display: flex; align-items: center; justify-content: center; 
+            text-decoration: none; font-size: 26px; box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+        }
+
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.92); z-index: 5000; align-items: center; justify-content: center; 
+            backdrop-filter: blur(10px); 
+        }
+        .modal-body { background: white; width: 90%; max-width: 420px; padding: 25px; border-radius: 30px; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        
+        .chip-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding: 5px 0; }
+        .chip { padding: 10px 16px; background: #eee; border-radius: 20px; font-size: 10px; border: none; font-weight: bold; white-space: nowrap; }
+        .chip.active { background: var(--secondary); color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="login-screen">
+        <img src="logo.png" alt="Elegánts" class="login-logo">
+        <h2 style="color: var(--primary); border:none; padding:0; margin-bottom:20px; font-style: italic;">VIP Manager</h2>
+        <input type="password" id="pin-input" placeholder="PIN" inputmode="numeric" style="padding:18px; text-align:center; border:none; letter-spacing:10px; font-size:22px; width:220px; background: rgba(255,255,255,0.1); color:white; border-radius: 15px;">
+        <button onclick="verificarAcceso()" class="btn-main" style="width:220px; margin-top:20px; background: var(--primary); color: #000; border:none;">ENTRAR</button>
+    </div>
+
+    <div id="manager-content" style="display:none;">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'tab-inventario')">Catálogo</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-pedidos')">Logística</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-clientes')">Clientes</button>
+        </div>
+
+        <div id="tab-inventario" class="content active">
+            <div class="card">
+                <h2>Ingreso de Fragancia</h2>
+                <form id="form-perfume">
+                    <input type="text" id="p-nombre" placeholder="Nombre" required>
+                    <input type="number" id="p-precio" placeholder="Precio (₡)" required>
+                    <textarea id="p-desc" placeholder="Descripción..."></textarea>
+                    <input type="text" id="p-video" placeholder="Link de Video">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label>Categoría:</label><select id="p-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option></select></div>
+                        <div><label>Estilo:</label><select id="p-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho">Nicho</option><option value="Inspiración">Inspiración</option></select></div>
+                    </div>
+                    <label>Ocasión:</label><select id="p-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Gala">Noche / Gala</option></select>
+                    <input type="file" id="p-file" accept="image/*" required>
+                    <button type="submit" id="btn-p" class="btn-main">GUARDAR PRODUCTO</button>
+                </form>
+            </div>
+            <div id="lista-inventario"></div>
+        </div>
+
+        <div id="tab-pedidos" class="content">
+            <div class="chip-bar">
+                <button onclick="filtrarLogi('Para Pedir', this)" class="chip active">Para Pedir 📦</button>
+                <button onclick="filtrarLogi('Pendiente', this)" class="chip">Espera ⏳</button>
+                <button onclick="filtrarLogi('Despachado', this)" class="chip">Camino 🚚</button>
+                <button onclick="filtrarLogi('Entregado', this)" class="chip">Entregados ✅</button>
+            </div>
+            <div id="container-botones-logistica" style="margin-bottom:15px; display:none;"></div>
+            <div id="lista-pedidos"></div>
+        </div>
+
+        <div id="tab-clientes" class="content">
+            <div class="card">
+                <h2>Nuevo Cliente</h2>
+                <form id="form-cliente">
+                    <input type="text" id="c-nombre" placeholder="Nombre" required>
+                    <input type="tel" id="c-tel" placeholder="WhatsApp" required>
+                    <textarea id="c-dir" placeholder="Dirección de entrega"></textarea>
+                    <textarea id="c-notas" placeholder="Notas privadas"></textarea>
+                    <button type="submit" class="btn-main">REGISTRAR CLIENTE</button>
+                </form>
+            </div>
+            <div id="lista-clientes"></div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-editar-perfume" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <h2>Modificar Perfume</h2>
+        <form id="form-editar-p">
+            <input type="hidden" id="e-id"><input type="hidden" id="e-img-actual">
+            <label>Nombre:</label><input type="text" id="e-nombre" required>
+            <label>Precio:</label><input type="number" id="e-precio" required>
+            <label>Descripción:</label><textarea id="e-desc"></textarea>
+            <label>Link Video:</label><input type="text" id="e-video">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div><label>Categoría:</label><select id="e-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option></select></div>
+                <div><label>Estilo:</label><select id="e-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho">Nicho</option><option value="Inspiración">Inspiración</option></select></div>
+            </div>
+            <label>Ocasión:</label><select id="e-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Gala">Noche / Gala</option></select>
+            <label>Nueva Foto:</label><input type="file" id="e-file" accept="image/*">
+            <button type="submit" class="btn-main">GUARDAR CAMBIOS</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-cobro" class="modal-overlay">
+    <div class="modal-body">
+        <h2>Vender Perfume</h2>
+        <p id="info-venta" style="font-weight:bold; color:var(--primary);"></p>
+        <label>Seleccionar Cliente:</label><select id="select-cliente-venta"></select>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div><label>Pago:</label><select id="tipo-venta"><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select></div>
+            <div><label>Estado:</label><select id="estado-logistica"><option value="Para Pedir">Para Pedir 📦</option><option value="Pendiente">Espera ⏳</option></select></div>
+        </div>
+        <button onclick="procesarVenta()" class="btn-main" style="background:var(--success); color:white; border:none;">CONFIRMAR VENTA</button>
+    </div>
+</div>
+
+<div id="modal-perfil" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <h2 id="perfil-nombre" style="margin:0; border:none;">Cargando...</h2>
+            <span onclick="abrirEditarCliente()" style="cursor:pointer; font-size:18px;">✏️</span>
+        </div>
+        <div id="perfil-datos-contacto" style="margin-top:12px; font-size:13px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <p id="perfil-tel" style="margin:4px 0;"></p>
+            <p id="perfil-dir" style="margin:4px 0; font-style:italic; color:#666;"></p>
+            <div id="perfil-nota-privada" style="background:#fff8e1; padding:10px; border-radius:15px; margin-top:10px; display:none; border:1px solid #ffe082;">
+                <small><b>NOTAS:</b></small><br><span id="perfil-nota-texto"></span>
+            </div>
+        </div>
+        <div class="card" style="text-align:center; background:#f9f9f9; margin-top:15px;">
+            <small>DEUDA PENDIENTE</small>
+            <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
+                <h1 id="perfil-saldo" style="margin:5px 0; color:var(--danger); font-size:36px;">₡0</h1>
+                <span onclick="toggleAjusteSaldo()" style="cursor:pointer; font-size:18px;">⚙️</span>
+            </div>
+            <div id="area-ajuste-saldo" style="display:none; margin-top:10px;"><input type="number" id="nuevo-saldo-manual"><button onclick="guardarSaldoManual()" class="btn-main" style="padding:10px;">GUARDAR SALDO</button></div>
+            <div id="area-abono" style="display:none; margin-top:15px;"><input type="number" id="monto-abono" placeholder="₡ Monto"><button onclick="registrarAbono()" class="btn-main" style="background:var(--success); color:white; border:none;">REGISTRAR ABONO</button></div>
+            <div id="recibo-whatsapp-container" style="display:none; margin-top:15px;"><button id="btn-enviar-recibo" class="btn-main" style="background:#25d366; color:white; border:none;">ENVIAR RECIBO (WHATSAPP)</button></div>
+            <button id="btn-show-abono" onclick="this.style.display='none'; document.getElementById('area-abono').style.display='block'" style="background:none; border:none; color:var(--info); font-size:12px; font-weight:bold; margin-top:10px;">+ REGISTRAR ABONO</button>
+        </div>
+        <h3>Historial de Movimientos</h3>
+        <div id="perfil-historial"></div>
+    </div>
+</div>
+
+<div id="modal-editar-cliente" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <h2>Editar Cliente</h2>
+        <form id="form-editar-cliente">
+            <input type="hidden" id="ec-id">
+            <label>Nombre:</label><input type="text" id="ec-nombre" required>
+            <label>WhatsApp:</label><input type="tel" id="ec-tel" required>
+            <label>Dirección:</label><textarea id="ec-dir"></textarea>
+            <label>Notas Privadas:</label><textarea id="ec-notas"></textarea>
+            <button type="submit" class="btn-main">ACTUALIZAR DATOS</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, increment, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDjFHWA9gA-yNVlFi-sXCl8anbMJhPrTGs",
+        authDomain: "elegants-40696.firebaseapp.com",
+        projectId: "elegants-40696",
+        storageBucket: "elegants-40696.firebasestorage.app",
+        messagingSenderId: "262268889124",
+        appId: "1:262268889124:web:15b81eee4052d6c73f90b1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let cClientes = []; let cPedidos = []; let cProds = [];
+    let pSel = null; let cIdActivo = null; let filtroActual = 'Para Pedir';
+
+    window.verificarAcceso = () => {
+        if (document.getElementById("pin-input").value === "2652") {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("manager-content").style.display = "block";
+            cargarTodo();
+        } else { alert("PIN Incorrecto"); }
+    };
+
+    async function cargarTodo() { cargarInventario(); cargarClientes(); cargarPedidos(); }
+
+    window.openTab = (evt, name) => {
+        document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById(name).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    };
+
+    // --- CATÁLOGO ---
+    async function cargarInventario() {
+        const snap = await getDocs(query(collection(db, "perfumes"), orderBy("fecha", "desc")));
+        const div = document.getElementById("lista-inventario");
+        div.innerHTML = ""; cProds = [];
+        snap.forEach(d => {
+            const p = d.data(); p.id = d.id; cProds.push(p);
+            div.innerHTML += `<div class="item-row">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <img src="${p.imagen}" style="width:65px; height:65px; border-radius:14px; object-fit:cover;">
+                    <div style="flex:1"><strong>${p.nombre}</strong><br><small>₡${p.precio}</small></div>
+                    <div style="text-align:right;">
+                        <button onclick="abrirVenta('${p.nombre}', ${p.precio})" class="btn-main" style="width:auto; margin:0; padding:8px 12px; font-size:11px; background:var(--primary); color:black; border:none;">VENDER</button>
+                        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:15px;">
+                            <span onclick="abrirEditarP('${p.id}')" style="cursor:pointer; font-size:18px;">✏️</span>
+                            <span onclick="borrarP('${p.id}')" style="cursor:pointer; font-size:18px;">🗑️</span>
+                        </div>
+                    </div>
+                </div></div>`;
+        });
+    }
+
+    window.abrirEditarP = (id) => {
+        const p = cProds.find(x => x.id === id);
+        document.getElementById("e-id").value = p.id;
+        document.getElementById("e-nombre").value = p.nombre;
+        document.getElementById("e-precio").value = p.precio;
+        document.getElementById("e-desc").value = p.descripcion || "";
+        document.getElementById("e-video").value = p.video || "";
+        document.getElementById("e-cat").value = p.categoria || "Caballero";
+        document.getElementById("e-subcat").value = p.subcategoria || "Diseñador";
+        document.getElementById("e-uso").value = p.uso || "Sport / Diario";
+        document.getElementById("e-img-actual").value = p.imagen;
+        document.getElementById("modal-editar-perfume").style.display = "flex";
+    };
+
+    document.getElementById("form-editar-p").onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("e-id").value;
+        const file = document.getElementById("e-file").files[0];
+        let url = document.getElementById("e-img-actual").value;
+        if(file) {
+            const sRef = ref(storage, `perfumes/${Date.now()}_${file.name}`);
+            const snap = await uploadBytes(sRef, file);
+            url = await getDownloadURL(snap.ref);
+        }
+        await updateDoc(doc(db, "perfumes", id), {
+            nombre: document.getElementById("e-nombre").value,
+            precio: Number(document.getElementById("e-precio").value),
+            descripcion: document.getElementById("e-desc").value,
+            video: document.getElementById("e-video").value,
+            categoria: document.getElementById("e-cat").value,
+            subcategoria: document.getElementById("e-subcat").value,
+            uso: document.getElementById("e-uso").value,
+            imagen: url
+        });
+        cerrarModales(); cargarInventario();
+    };
+
+    window.borrarP = async (id) => { if(confirm("¿Eliminar perfume?")) { await deleteDoc(doc(db, "perfumes", id)); cargarInventario(); } };
+
+    // --- LOGÍSTICA FIFO ---
+    async function cargarPedidos() {
+        const snap = await getDocs(query(collection(db, "pedidos"), orderBy("fecha", "asc")));
+        cPedidos = []; snap.forEach(d => { const p = d.data(); p.id = d.id; cPedidos.push(p); });
+        renderLogistica();
+    }
+
+    function renderLogistica() {
+        const div = document.getElementById("lista-pedidos");
+        const btnArea = document.getElementById("container-botones-logistica");
+        const data = cPedidos.filter(p => (p.logistica || 'Para Pedir') === filtroActual);
+        div.innerHTML = data.length === 0 ? "<p style='text-align:center; font-size:12px; color:#999; margin-top:20px;'>Vacío.</p>" : "";
+        btnArea.innerHTML = ""; btnArea.style.display = data.length > 0 ? "block" : "none";
+
+        if (filtroActual === 'Para Pedir') {
+            btnArea.innerHTML = `<button onclick="generarConsolidadoWA()" class="btn-main" style="background:var(--order); color:white; border:none; margin:0;">📦 CONSOLIDAR PARA WHATSAPP</button>`;
+        } else if (filtroActual === 'Pendiente') {
+            btnArea.innerHTML = `<button onclick="recibirPorCantidad()" class="btn-main" style="background:var(--info); color:white; border:none; margin:0;">📥 RECIBIR POR CANTIDAD (FIFO)</button>`;
+        }
+
+        data.forEach(p => {
+            div.innerHTML += `<div class="item-row" style="border-left-color:#ccc">
+                <div style="flex:1"><strong>${p.cliente}</strong><br><small>${p.producto} - ₡${p.total} (${p.tipo})</small></div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+                    ${filtroActual !== 'Entregado' ? `<button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="font-size:10px; padding:6px; border-radius:10px;">Siguiente ➜</button>` : '<span class="status-badge st-entregado">Listo</span>'}
+                    <span onclick="borrarPedidoLogi('${p.id}', ${p.total}, '${p.tipo}', '${p.idCliente}')" style="cursor:pointer; font-size:16px;">🗑️</span>
+                </div></div>`;
+        });
+    }
+
+    window.avanzarPed = async (id, actual) => {
+        let sig = actual === 'Para Pedir' ? 'Pendiente' : (actual === 'Pendiente' ? 'Despachado' : 'Entregado');
+        await updateDoc(doc(db, "pedidos", id), { logistica: sig });
+        cargarPedidos();
+    };
+
+    window.borrarPedidoLogi = async (id, monto, tipo, idC) => {
+        if(confirm("¿Eliminar este pedido? El saldo se ajustará si fue crédito.")) {
+            await deleteDoc(doc(db, "pedidos", id));
+            if(tipo === 'Crédito' && idC && idC !== 'undefined') await updateDoc(doc(db, "clientes", idC), { saldo: increment(-monto) });
+            cargarPedidos(); cargarClientes();
+        }
+    };
+
+    window.generarConsolidadoWA = async () => {
+        const lista = cPedidos.filter(p => (p.logistica || 'Para Pedir') === 'Para Pedir');
+        const res = lista.reduce((acc, p) => { acc[p.producto] = (acc[p.producto] || 0) + 1; return acc; }, {});
+        let msg = `*📦 PEDIDO CONSOLIDADO - Elegánts*\n\n`;
+        for (const [perf, cant] of Object.entries(res)) msg += `• ${cant}x - ${perf}\n`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        if(confirm("¿Mover a 'En Espera'?")) {
+            const batch = writeBatch(db);
+            lista.forEach(p => batch.update(doc(db, "pedidos", p.id), { logistica: 'Pendiente' }));
+            await batch.commit(); cargarPedidos();
+        }
+    };
+
+    window.recibirPorCantidad = async () => {
+        const pends = [...new Set(cPedidos.filter(p => p.logistica === 'Pendiente').map(p => p.producto))];
+        const perf = prompt("Nombre perfume:\n" + pends.join(", "));
+        if(!perf) return;
+        const cant = parseInt(prompt(`¿Cuántos recibiste?`));
+        if(isNaN(cant) || cant <= 0) return;
+        const afectar = cPedidos.filter(p => p.producto.toLowerCase().trim() === perf.toLowerCase().trim() && p.logistica === 'Pendiente').slice(0, cant);
+        if(confirm(`Mover ${afectar.length} unidades.`)) {
+            const batch = writeBatch(db);
+            afectar.forEach(p => batch.update(doc(db, "pedidos", p.id), { logistica: 'Despachado' }));
+            await batch.commit(); cargarPedidos();
+        }
+    };
+
+    window.filtrarLogi = (est, btn) => {
+        filtroActual = est;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); btn.classList.add('active');
+        renderLogistica();
+    };
+
+    // --- CLIENTES ---
+    async function cargarClientes() {
+        const snap = await getDocs(collection(db, "clientes"));
+        cClientes = []; const sel = document.getElementById("select-cliente-venta"); sel.innerHTML = "";
+        snap.forEach(d => {
+            const c = {id: d.id, ...d.data()}; cClientes.push(c);
+            sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+        });
+        const div = document.getElementById("lista-clientes"); div.innerHTML = "";
+        cClientes.sort((a,b) => a.nombre.localeCompare(b.nombre));
+        cClientes.forEach(c => {
+            div.innerHTML += `<div class="item-row" style="border-left-color:${c.saldo > 0 ? 'var(--danger)' : '#ccc'}">
+                <div onclick="abrirPerfil('${c.id}')" style="flex:1; cursor:pointer"><strong>${c.nombre}</strong><br><small>Saldo: ₡${c.saldo || 0}</small></div>
+                <a href="https://wa.me/506${c.telefono.replace(/\s/g, '')}" target="_blank" class="btn-wa-right"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="28"></a>
+            </div>`;
+        });
+    }
+
+    window.abrirPerfil = async (id) => {
+        cIdActivo = id; const cli = cClientes.find(x => x.id === id);
+        document.getElementById("perfil-nombre").innerText = cli.nombre;
+        document.getElementById("perfil-saldo").innerText = `₡${cli.saldo || 0}`;
+        document.getElementById("perfil-tel").innerText = "📱 WhatsApp: " + cli.telefono;
+        document.getElementById("perfil-dir").innerText = cli.direccion || "📍 No registrada";
+        document.getElementById("perfil-nota-privada").style.display = cli.notas ? "block" : "none";
+        document.getElementById("perfil-nota-texto").innerText = cli.notas || "";
+        document.getElementById("area-abono").style.display = "none";
+        document.getElementById("btn-show-abono").style.display = "block";
+        document.getElementById("recibo-whatsapp-container").style.display = "none";
+        document.getElementById("area-ajuste-saldo").style.display = "none";
+        const histDiv = document.getElementById("perfil-historial"); histDiv.innerHTML = "Cargando...";
+        document.getElementById("modal-perfil").style.display = "flex";
+        try {
+            const snapP = await getDocs(query(collection(db, "pedidos"), where("idCliente", "==", id)));
+            const snapA = await getDocs(query(collection(db, "abonos"), where("idCliente", "==", id)));
+            let movs = [];
+            snapP.forEach(d => movs.push({...d.data(), idMov: d.id, tipoM: 'Compra'}));
+            snapA.forEach(d => movs.push({...d.data(), idMov: d.id, tipoM: 'Abono'}));
+            movs.sort((a, b) => (b.fecha?.toDate() || 0) - (a.fecha?.toDate() || 0));
+            histDiv.innerHTML = movs.length === 0 ? "Sin historial." : "";
+            movs.forEach(m => {
+                const esA = m.tipoM === 'Abono';
+                histDiv.innerHTML += `<div class="historial-card" style="border-left-color:${esA ? 'var(--success)' : 'var(--danger)'}">
+                    <div style="display:flex; justify-content:space-between;"><strong>${esA ? 'Abono' : m.producto}</strong><span>₡${esA ? m.monto : m.total}</span></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                        <small>${m.fecha?.toDate()?.toLocaleString() || ''}</small>
+                        <span onclick="borrarMovimientoPerfil('${m.idMov}', '${m.tipoM}', ${esA ? m.monto : m.total})" style="cursor:pointer; font-size:14px;">🗑️</span>
+                    </div></div>`;
+            });
+        } catch (e) { histDiv.innerHTML = "Error."; }
+    };
+
+    window.borrarMovimientoPerfil = async (id, tipo, monto) => {
+        if(confirm(`¿Eliminar este registro?`)) {
+            await deleteDoc(doc(db, tipo === 'Abono' ? "abonos" : "pedidos", id));
+            const ajuste = tipo === 'Abono' ? monto : -monto;
+            await updateDoc(doc(db, "clientes", cIdActivo), { saldo: increment(ajuste) });
+            cargarClientes(); abrirPerfil(cIdActivo);
+        }
+    };
+
+    window.registrarAbono = async () => {
+        const m = Number(document.getElementById("monto-abono").value);
+        if(m > 0) {
+            const cli = cClientes.find(x => x.id === cIdActivo);
+            const nuevoS = (cli.saldo || 0) - m;
+            await addDoc(collection(db, "abonos"), { idCliente: cIdActivo, monto: m, fecha: new Date() });
+            await updateDoc(doc(db, "clientes", cIdActivo), { saldo: nuevoS });
+            const msg = encodeURIComponent(`*RECIBO DE ABONO*\n✅ *Cliente:* ${cli.nombre}\n💵 *Abono:* ₡${m}\n💰 *Saldo:* ₡${nuevoS}`);
+            const btnWA = document.getElementById("btn-enviar-recibo");
+            btnWA.onclick = () => window.open(`https://wa.me/506${cli.telefono.replace(/\s/g, '')}?text=${msg}`, '_blank');
+            document.getElementById("area-abono").style.display = "none";
+            document.getElementById("recibo-whatsapp-container").style.display = "block";
+            cargarClientes(); 
+        }
+    };
+
+    window.guardarSaldoManual = async () => {
+        const val = Number(document.getElementById("nuevo-saldo-manual").value);
+        if(confirm("¿Ajustar saldo total manualmente?")) {
+            await updateDoc(doc(db, "clientes", cIdActivo), { saldo: val });
+            cargarClientes(); abrirPerfil(cIdActivo);
+        }
+    };
+
+    window.toggleAjusteSaldo = () => {
+        const a = document.getElementById("area-ajuste-saldo");
+        a.style.display = a.style.display === "none" ? "block" : "none";
+    };
+
+    window.abrirEditarCliente = () => {
+        const cli = cClientes.find(x => x.id === cIdActivo);
+        document.getElementById("ec-id").value = cli.id;
+        document.getElementById("ec-nombre").value = cli.nombre;
+        document.getElementById("ec-tel").value = cli.telefono;
+        document.getElementById("ec-dir").value = cli.direccion || "";
+        document.getElementById("ec-notas").value = cli.notas || "";
+        document.getElementById("modal-editar-cliente").style.display = "flex";
+    };
+
+    document.getElementById("form-editar-cliente").onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("ec-id").value;
+        await updateDoc(doc(db, "clientes", id), {
+            nombre: document.getElementById("ec-nombre").value,
+            telefono: document.getElementById("ec-tel").value,
+            direccion: document.getElementById("ec-dir").value,
+            notas: document.getElementById("ec-notas").value
+        });
+        cerrarModales(); cargarClientes(); setTimeout(() => abrirPerfil(id), 500);
+    };
+
+    // --- VENTAS ---
+    window.abrirVenta = (n, p) => { 
+        pSel = { nombre: n, precio: p }; 
+        document.getElementById("info-venta").innerText = `${n} - ₡${p}`; 
+        document.getElementById("modal-cobro").style.display = "flex"; 
+    };
+
+    window.procesarVenta = async () => {
+        const idC = document.getElementById("select-cliente-venta").value;
+        const cli = cClientes.find(x => x.id === idC);
+        const tipo = document.getElementById("tipo-venta").value;
+        const logi = document.getElementById("estado-logistica").value;
+        if(tipo === 'Crédito') await updateDoc(doc(db, "clientes", idC), { saldo: increment(pSel.precio) });
+        await addDoc(collection(db, "pedidos"), { idCliente: idC, cliente: cli.nombre, producto: pSel.nombre, total: pSel.precio, tipo: tipo, logistica: logi, fecha: new Date() });
+        cerrarModales(); cargarTodo();
+    };
+
+    // --- ACCIONES FORMULARIOS ---
+    document.getElementById("form-perfume").onsubmit = async (e) => {
+        e.preventDefault(); const btn = document.getElementById("btn-p");
+        btn.innerText = "Subiendo..."; btn.disabled = true;
+        const file = document.getElementById("p-file").files[0];
+        const sRef = ref(storage, `perfumes/${Date.now()}_${file.name}`);
+        const snap = await uploadBytes(sRef, file);
+        const url = await getDownloadURL(snap.ref);
+        await addDoc(collection(db, "perfumes"), {
+            nombre: document.getElementById("p-nombre").value, precio: Number(document.getElementById("p-precio").value),
+            descripcion: document.getElementById("p-desc").value, video: document.getElementById("p-video").value,
+            categoria: document.getElementById("p-cat").value, subcategoria: document.getElementById("p-subcat").value,
+            uso: document.getElementById("p-uso").value, imagen: url, fecha: new Date()
+        });
+        document.getElementById("form-perfume").reset(); cargarTodo();
+        btn.innerText = "GUARDAR PRODUCTO"; btn.disabled = false;
+    };
+
+    document.getElementById("form-cliente").onsubmit = async (e) => {
+        e.preventDefault();
+        await addDoc(collection(db, "clientes"), {
+            nombre: document.getElementById("c-nombre").value, telefono: document.getElementById("c-tel").value,
+            direccion: document.getElementById("c-dir").value, notas: document.getElementById("c-notas").value, saldo: 0
+        });
+        document.getElementById("form-cliente").reset(); cargarClientes();
+    };
+
+    window.cerrarModales = () => { document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none"); };
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('App lista para descargar'))
+        .catch(err => console.log('Error de registro', err));
+    });
+  }
+</script>
+
+</body>
+</html>
