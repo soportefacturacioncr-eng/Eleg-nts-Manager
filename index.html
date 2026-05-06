@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elegánts Manager - Edras VIP</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Elegánts">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="theme-color" content="#1a1a1a">
+
+    <style>
+        :root { 
+            --primary: #d4af37; --secondary: #1a1a1a; --bg: #0f0f0f; 
+            --card-bg: rgba(255, 255, 255, 0.98); --info: #3498db; 
+            --danger: #e74c3c; --success: #27ae60; --warning: #f39c12; --order: #9b59b6;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); margin: 0; padding: 0; 
+            display: flex; justify-content: center; color: #333;
+        }
+
+        .app-container {
+            width: 100%; max-width: 500px; min-height: 100vh;
+            background: #f8f9fa; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* LOGIN */
+        #login-screen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--secondary); color: white; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 4000; padding: 20px; box-sizing: border-box;
+        }
+
+        .login-logo {
+            width: 200px; height: 200px; object-fit: contain; margin-bottom: 25px;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+        }
+
+        /* NAVEGACIÓN */
+        .tabs { 
+            display: flex; background: var(--secondary); position: sticky; top: 0; z-index: 100; 
+            border-bottom: 3px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .tab-btn { 
+            flex: 1; padding: 18px 5px; color: #888; border: none; background: none; 
+            font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; 
+        }
+        .tab-btn.active { color: var(--primary); background: rgba(212, 175, 55, 0.1); }
+        
+        .content { padding: 20px; display: none; position: relative; z-index: 1; }
+        .content.active { display: block; }
+        
+        .card { 
+            background: var(--card-bg); padding: 20px; border-radius: 28px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06); margin-bottom: 20px; border: 1px solid #fff; 
+        }
+        h2 { color: var(--secondary); font-size: 1.1em; border-left: 5px solid var(--primary); padding-left: 12px; margin-top: 0; text-transform: uppercase; }
+        label { display: block; margin-top: 10px; font-size: 10px; font-weight: bold; color: #999; }
+        input, select, textarea { width: 100%; padding: 14px; margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 15px; box-sizing: border-box; }
+        
+        .btn-main { 
+            background: var(--secondary); color: var(--primary); border: 2px solid var(--primary); 
+            font-weight: bold; cursor: pointer; margin-top: 15px; padding: 15px; 
+            border-radius: 14px; width: 100%; font-size: 14px; transition: 0.2s;
+        }
+        .btn-main:active { transform: scale(0.97); background: var(--primary); color: #000; }
+
+        .item-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 18px; background: white; border-radius: 20px; margin-bottom: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 6px solid var(--primary); 
+            transition: all 0.3s ease;
+        }
+        
+        .btn-wa-right { 
+            background: #25d366; color: white; width: 52px; height: 52px; 
+            border-radius: 16px; display: flex; align-items: center; justify-content: center; 
+            text-decoration: none; font-size: 26px; box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+        }
+
+        .modal-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.92); z-index: 5000; align-items: center; justify-content: center; 
+            backdrop-filter: blur(10px); 
+        }
+        .modal-body { background: white; width: 90%; max-width: 420px; padding: 25px; border-radius: 30px; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        
+        .chip-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding: 5px 0; }
+        .chip { padding: 10px 16px; background: #eee; border-radius: 20px; font-size: 10px; border: none; font-weight: bold; white-space: nowrap; }
+        .chip.active { background: var(--secondary); color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div id="login-screen">
+        <img src="logo.png" alt="Elegánts" class="login-logo">
+        <h2 style="color: var(--primary); border:none; padding:0; margin-bottom:20px; font-style: italic;">VIP Manager</h2>
+        <input type="password" id="pin-input" placeholder="PIN" inputmode="numeric" style="padding:18px; text-align:center; border:none; letter-spacing:10px; font-size:22px; width:220px; background: rgba(255,255,255,0.1); color:white; border-radius: 15px;">
+        <button onclick="verificarAcceso()" class="btn-main" style="width:220px; margin-top:20px; background: var(--primary); color: #000; border:none;">ENTRAR</button>
+    </div>
+
+    <div id="manager-content" style="display:none;">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'tab-inventario')">Catálogo</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-pedidos')">Logística</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-clientes')">Clientes</button>
+        </div>
+
+        <div id="tab-inventario" class="content active">
+            <div class="card">
+                <h2>Ingreso de Fragancia</h2>
+                <form id="form-perfume">
+                    <input type="text" id="p-nombre" placeholder="Nombre" required>
+                    <input type="number" id="p-precio" placeholder="Precio (₡)" required>
+                    <textarea id="p-desc" placeholder="Descripción..."></textarea>
+                    <input type="text" id="p-video" placeholder="Link de Video">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div><label>Categoría:</label><select id="p-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option></select></div>
+                        <div><label>Estilo:</label><select id="p-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho">Nicho</option><option value="Inspiración">Inspiración</option></select></div>
+                    </div>
+                    <label>Ocasión:</label><select id="p-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Gala">Noche / Gala</option></select>
+                    <input type="file" id="p-file" accept="image/*" required>
+                    <button type="submit" id="btn-p" class="btn-main">GUARDAR PRODUCTO</button>
+                </form>
+            </div>
+            <input type="text" id="buscar-perfume" onkeyup="buscarCatalogo()" placeholder="🔍 Buscar fragancia..." style="margin-bottom: 15px; width:100%;">
+            <div id="lista-inventario"></div>
+        </div>
+
+        <div id="tab-pedidos" class="content">
+            <div class="chip-bar">
+                <button onclick="filtrarLogi('Para Pedir', this)" class="chip active">Para Pedir 📦</button>
+                <button onclick="filtrarLogi('Pendiente', this)" class="chip">Espera ⏳</button>
+                <button onclick="filtrarLogi('Despachado', this)" class="chip">Camino 🚚</button>
+                <button onclick="filtrarLogi('Entregado', this)" class="chip">Entregados ✅</button>
+            </div>
+            <div id="lista-pedidos"></div>
+        </div>
+
+        <div id="tab-clientes" class="content">
+            <div class="card" style="background: var(--primary); text-align: center; color: #000; border: none;">
+                <h3 style="margin: 0; font-size: 12px;">CUENTAS POR COBRAR</h3>
+                <h1 id="dashboard-total-cobrar" style="margin: 5px 0; font-size: 38px;">₡0</h1>
+            </div>
+
+            <div class="card">
+                <h2>Nuevo Cliente</h2>
+                <form id="form-cliente">
+                    <label>WhatsApp (Código Único):</label>
+                    <input type="tel" id="c-tel" placeholder="8888 8888" required onblur="verificarClienteExistente(this.value)">
+                    <input type="text" id="c-nombre" placeholder="Nombre completo" required>
+                    <div style="margin-top: 10px;">
+                        <label>Modalidad:</label>
+                        <select id="c-tipo"><option value="Ambos">Ambos</option><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>
+                    </div>
+                    <label style="margin-top: 15px;">Ubicación Correos CR:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <select id="c-provincia" onchange="actualizarCantones('c')"><option value="">Provincia</option></select>
+                        <select id="c-canton" onchange="actualizarDistritos('c')"><option value="">Cantón</option></select>
+                        <select id="c-distrito"><option value="">Distrito</option></select>
+                    </div>
+                    <textarea id="c-dir" placeholder="Dirección exacta..."></textarea>
+                    <textarea id="c-notas" placeholder="Notas internas..."></textarea>
+                    <button type="submit" id="btn-c-save" class="btn-main">REGISTRAR CLIENTE</button>
+                </form>
+            </div>
+            <input type="text" id="buscar-cliente" onkeyup="buscarClienteLista()" placeholder="🔍 Buscar por nombre o teléfono..." style="margin-bottom: 15px; width:100%;">
+            <div id="lista-clientes"></div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-perfil" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <h2 id="perfil-nombre" style="margin:0; border:none;"></h2>
+            <span id="perfil-tipo-badge" style="padding:4px 8px; border-radius:10px; font-size:10px; font-weight:bold; color:white;"></span>
+            <span onclick="abrirEditarCliente()" style="cursor:pointer; font-size:18px;">✏️</span>
+        </div>
+        <div id="perfil-datos-contacto" style="margin-top:12px; font-size:13px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <p id="perfil-tel" style="font-weight:bold; color:var(--primary);"></p>
+            <p id="perfil-dir" style="font-style:italic; color:#666;"></p>
+            <div id="perfil-nota-privada" style="background:#fff8e1; padding:10px; border-radius:15px; margin-top:10px; display:none; border:1px solid #ffe082;">
+                <small><b>NOTAS:</b></small><br><span id="perfil-nota-texto"></span>
+            </div>
+        </div>
+        <div class="card" style="text-align:center; background:#f9f9f9; margin-top:15px;">
+            <small>DEUDA PENDIENTE</small>
+            <h1 id="perfil-saldo" style="margin:5px 0; color:var(--danger); font-size:36px;">₡0</h1>
+            <div id="area-abono" style="display:none; margin-top:15px;"><input type="number" id="monto-abono" placeholder="₡ Monto"><button onclick="registrarAbono()" class="btn-main" style="background:var(--success); color:white; border:none;">REGISTRAR ABONO</button></div>
+            <button id="btn-show-abono" onclick="this.style.display='none'; document.getElementById('area-abono').style.display='block'" style="background:none; border:none; color:var(--info); font-size:12px; font-weight:bold; margin-top:10px;">+ REGISTRAR ABONO</button>
+        </div>
+        <h3>Historial</h3>
+        <div id="perfil-historial"></div>
+    </div>
+</div>
+
+<div id="modal-editar-cliente" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <h2>EDITAR CLIENTE</h2>
+        <form id="form-editar-cliente">
+            <input type="hidden" id="ec-id">
+            <label>WhatsApp (Llave):</label>
+            <input type="tel" id="ec-tel" readonly style="background:#f0f0f0;">
+            <label>Nombre:</label>
+            <input type="text" id="ec-nombre" required>
+            <label>Modalidad:</label>
+            <select id="ec-tipo"><option value="Ambos">Ambos</option><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>
+            <label style="margin-top:15px;">Ubicación Correos CR:</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <select id="ec-provincia" onchange="actualizarCantones('ec')"><option value="">Provincia</option></select>
+                <select id="ec-canton" onchange="actualizarDistritos('ec')"><option value="">Cantón</option></select>
+                <select id="ec-distrito"><option value="">Distrito</option></select>
+            </div>
+            <textarea id="ec-dir" placeholder="Dirección exacta..."></textarea>
+            <label>Notas Privadas:</label>
+            <textarea id="ec-notas"></textarea>
+            <button type="submit" class="btn-main">ACTUALIZAR DATOS</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-cobro" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <h2>Confirmar Venta</h2>
+        <p id="info-venta" style="font-weight:bold; color:var(--primary); text-align:center;"></p>
+        <label>Cliente:</label><select id="select-cliente-venta"></select>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div><label>Pago:</label><select id="tipo-venta"><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select></div>
+            <div><label>Estado:</label><select id="estado-logistica"><option value="Para Pedir">Para Pedir 📦</option><option value="Pendiente">Espera ⏳</option></select></div>
+        </div>
+        <button onclick="procesarVenta()" class="btn-main" style="background:var(--success); color:white; border:none;">REGISTRAR VENTA</button>
+    </div>
+</div>
+
+<div id="modal-editar-perfume" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <h2>Modificar Perfume</h2>
+        <form id="form-editar-p">
+            <input type="hidden" id="e-id"><input type="hidden" id="e-img-actual">
+            <label>Nombre:</label><input type="text" id="e-nombre" required>
+            <label>Precio:</label><input type="number" id="e-precio" required>
+            <textarea id="e-desc"></textarea>
+            <input type="text" id="e-video" placeholder="Link Video">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div><label>Cat:</label><select id="e-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option></select></div>
+                <div><label>Estilo:</label><select id="e-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho">Nicho</option><option value="Inspiración">Inspiración</option></select></div>
+            </div>
+            <input type="file" id="e-file" accept="image/*">
+            <button type="submit" class="btn-main">GUARDAR CAMBIOS</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, orderBy, increment, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDjFHWA9gA-yNVlFi-sXCl8anbMJhPrTGs",
+        authDomain: "elegants-40696.firebaseapp.com",
+        projectId: "elegants-40696",
+        storageBucket: "elegants-40696.firebasestorage.app",
+        messagingSenderId: "262268889124",
+        appId: "1:262268889124:web:15b81eee4052d6c73f90b1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // --- DATOS COSTA RICA ---
+    const mapaCR = {
+        "Alajuela": {
+            "San Carlos": ["Quesada", "Florencia", "Buenavista", "Aguas Zarcas", "Venecia", "Pital", "La Fortuna", "La Tigra", "La Palmera", "Venado", "Cutris", "Monterrey", "Pococol"],
+            "Zarcero": ["Zarcero", "Laguna", "Tapesco", "Guadalupe", "Zapote", "Brisas"],
+            "Alajuela": ["Alajuela", "San José", "Carrizal", "San Antonio", "Guácima", "San Isidro", "Sabanilla", "San Rafael", "Río Segundo", "Desamparados", "Turrucares", "Tambor", "Garita", "Sarapiquí"],
+            "Naranjo": ["Naranjo", "San Juan", "San José", "San Cirilo", "San Jerónimo", "San Cristóbal", "El Rosario", "Palmitos"],
+            "Grecia": ["Grecia", "San Isidro", "San José", "San Roque", "Tacares", "Puente de Piedra", "Bolívar"]
+        },
+        "San José": {
+            "Central": ["Carmen", "Merced", "Hospital", "Catedral", "Zapote", "San Francisco de Dos Ríos", "Uruca", "Mata Redonda", "Pavas", "Hatillo", "San Sebastián"],
+            "Escazú": ["Escazú", "San Antonio", "San Rafael"],
+            "Desamparados": ["Desamparados", "San Miguel", "San Juan de Dios", "San Rafael Arriba", "San Rafael Abajo"],
+            "Pérez Zeledón": ["San Isidro de El General", "General", "Daniel Flores", "Rivas", "San Pedro", "Platanares"]
+        },
+        "Heredia": {
+            "Central": ["Heredia", "Mercedes", "San Francisco", "Ulloa", "Varablanca"],
+            "Barva": ["Barva", "San Pedro", "San Pablo", "San Roque", "Santa Lucía", "San José de la Montaña"],
+            "Santo Domingo": ["Santo Domingo", "Vicente", "Santa Rosa", "San Miguel", "Paracito"]
+        },
+        "Cartago": {
+            "Central": ["Oriental", "Occidental", "Carmen", "San Nicolás", "Aguacaliente", "Guadalupe", "Corralillo", "Tierra Blanca", "Dulce Nombre", "Llano Grande", "Quebradilla"],
+            "Paraíso": ["Paraíso", "Santiago", "Orosi", "Cachí", "Llanos de Santa Lucía"]
+        },
+        "Guanacaste": {
+            "Liberia": ["Liberia", "Cañas Dulces", "Mayorga", "Nacascolo", "Curubandé"],
+            "Nicoya": ["Nicoya", "Mansión", "San Antonio", "Quebrada Honda", "Sámara", "Nosara"]
+        },
+        "Puntarenas": {
+            "Central": ["Puntarenas", "Lepanto", "Paquera", "Cóbano", "Chacarita", "El Roble", "Barranca"],
+            "Esparza": ["Espíritu Santo", "San Juan Grande", "Macacona", "San Rafael", "San Jerónimo"]
+        },
+        "Limón": {
+            "Central": ["Limón", "Valle de La Estrella", "Río Blanco", "Matama"],
+            "Pococí": ["Guápiles", "Jiménez", "Rita", "Roxana", "Cariari", "Colorado", "La Colonia"]
+        }
+    };
+
+    let cClientes = []; let cPedidos = []; let cProds = [];
+    let pSel = null; let cIdActivo = null; let filtroActual = 'Para Pedir';
+
+    window.verificarAcceso = () => {
+        if (document.getElementById("pin-input").value === "2652") {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("manager-content").style.display = "block";
+            cargarTodo();
+        } else { alert("PIN Incorrecto"); }
+    };
+
+    async function cargarTodo() { 
+        inicializarMapa();
+        cargarInventario(); 
+        cargarClientes(); 
+        cargarPedidos(); 
+    }
+
+    // --- LOGICA DE MAPA ---
+    function inicializarMapa() {
+        const provs = Object.keys(mapaCR);
+        const selects = ['c-provincia', 'ec-provincia'];
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            el.innerHTML = '<option value="">Provincia</option>';
+            provs.forEach(p => el.innerHTML += `<option value="${p}">${p}</option>`);
+        });
+    }
+
+    window.actualizarCantones = (prefix) => {
+        const prov = document.getElementById(`${prefix}-provincia`).value;
+        const cantonSel = document.getElementById(`${prefix}-canton`);
+        const distritoSel = document.getElementById(`${prefix}-distrito`);
+        cantonSel.innerHTML = '<option value="">Cantón</option>';
+        distritoSel.innerHTML = '<option value="">Distrito</option>';
+        if (prov && mapaCR[prov]) {
+            Object.keys(mapaCR[prov]).forEach(c => cantonSel.innerHTML += `<option value="${c}">${c}</option>`);
+        }
+    };
+
+    window.actualizarDistritos = (prefix) => {
+        const prov = document.getElementById(`${prefix}-provincia`).value;
+        const canton = document.getElementById(`${prefix}-canton`).value;
+        const distritoSel = document.getElementById(`${prefix}-distrito`);
+        distritoSel.innerHTML = '<option value="">Distrito</option>';
+        if (prov && canton && mapaCR[prov][canton]) {
+            mapaCR[prov][canton].forEach(d => distritoSel.innerHTML += `<option value="${d}">${d}</option>`);
+        }
+    };
+
+    window.openTab = (evt, name) => {
+        document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById(name).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    };
+
+    // --- INVENTARIO ---
+    async function cargarInventario() {
+        const snap = await getDocs(query(collection(db, "perfumes"), orderBy("fecha", "desc")));
+        const div = document.getElementById("lista-inventario");
+        div.innerHTML = ""; cProds = [];
+        snap.forEach(d => {
+            const p = d.data(); p.id = d.id; cProds.push(p);
+            const isOculto = p.oculto === true;
+            div.innerHTML += `<div class="item-row prod-item" style="opacity: ${isOculto ? '0.5' : '1'}">
+                <div style="display:flex; gap:12px; align-items:center; width:100%;">
+                    <img src="${p.imagen}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
+                    <div style="flex:1"><strong class="p-nombre">${p.nombre}</strong><br><small>₡${p.precio}</small></div>
+                    <div style="text-align:right;">
+                        <button onclick="abrirVenta('${p.nombre}', ${p.precio})" class="btn-main" style="width:auto; padding:6px 10px; font-size:10px;" ${isOculto ? 'disabled' : ''}>VENDER</button>
+                        <div style="margin-top:8px;">
+                            <span onclick="toggleOcultarP('${p.id}', ${isOculto})" style="cursor:pointer; margin-right:10px;">${isOculto ? '👁️' : '🚫'}</span>
+                            <span onclick="abrirEditarP('${p.id}')" style="cursor:pointer;">✏️</span>
+                        </div>
+                    </div>
+                </div></div>`;
+        });
+    }
+
+    window.buscarCatalogo = () => {
+        const t = document.getElementById("buscar-perfume").value.toLowerCase();
+        document.querySelectorAll(".prod-item").forEach(i => {
+            i.style.display = i.querySelector(".p-nombre").innerText.toLowerCase().includes(t) ? "flex" : "none";
+        });
+    };
+
+    window.toggleOcultarP = async (id, isOculto) => {
+        await updateDoc(doc(db, "perfumes", id), { oculto: !isOculto });
+        cargarInventario();
+    };
+
+    window.abrirEditarP = (id) => {
+        const p = cProds.find(x => x.id === id);
+        document.getElementById("e-id").value = p.id;
+        document.getElementById("e-nombre").value = p.nombre;
+        document.getElementById("e-precio").value = p.precio;
+        document.getElementById("e-desc").value = p.descripcion || "";
+        document.getElementById("e-video").value = p.video || "";
+        document.getElementById("e-cat").value = p.categoria || "Caballero";
+        document.getElementById("e-img-actual").value = p.imagen;
+        document.getElementById("modal-editar-perfume").style.display = "flex";
+    };
+
+    document.getElementById("form-editar-p").onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("e-id").value;
+        const file = document.getElementById("e-file").files[0];
+        let url = document.getElementById("e-img-actual").value;
+        if(file) {
+            const snap = await uploadBytes(ref(storage, `perfumes/${Date.now()}`), file);
+            url = await getDownloadURL(snap.ref);
+        }
+        await updateDoc(doc(db, "perfumes", id), {
+            nombre: document.getElementById("e-nombre").value,
+            precio: Number(document.getElementById("e-precio").value),
+            descripcion: document.getElementById("e-desc").value,
+            video: document.getElementById("e-video").value,
+            categoria: document.getElementById("e-cat").value,
+            imagen: url
+        });
+        cerrarModales(); cargarInventario();
+    };
+
+    // --- CLIENTES ---
+    async function cargarClientes() {
+        const snap = await getDocs(collection(db, "clientes"));
+        cClientes = []; let totalC = 0;
+        const sel = document.getElementById("select-cliente-venta"); sel.innerHTML = "";
+        snap.forEach(d => {
+            const c = {id: d.id, ...d.data()}; 
+            cClientes.push(c);
+            sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+            if(c.saldo > 0) totalC += c.saldo;
+        });
+        document.getElementById("dashboard-total-cobrar").innerText = `₡${totalC}`;
+        renderClientesLista();
+    }
+
+    function renderClientesLista() {
+        const div = document.getElementById("lista-clientes"); div.innerHTML = "";
+        cClientes.sort((a,b) => a.nombre.localeCompare(b.nombre));
+        cClientes.forEach(c => {
+            const color = c.tipoCliente === 'Crédito' ? 'var(--danger)' : 'var(--success)';
+            div.innerHTML += `<div class="item-row cli-item" style="border-left-color:${c.saldo > 0 ? 'var(--danger)' : '#ccc'}">
+                <div onclick="abrirPerfil('${c.id}')" style="flex:1; cursor:pointer">
+                    <strong class="c-nombre-txt">${c.nombre}</strong> <small class="c-tel-txt">(${c.telefono})</small>
+                    <span style="background:${color}; color:white; font-size:8px; padding:2px 5px; border-radius:5px; margin-left:5px;">${c.tipoCliente || 'Ambos'}</span>
+                    <br><small>Saldo: ₡${c.saldo || 0}</small>
+                </div>
+                <a href="https://wa.me/506${c.telefono.replace(/\s/g, '')}" target="_blank" class="btn-wa-right"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="22"></a>
+            </div>`;
+        });
+    }
+
+    window.buscarClienteLista = () => {
+        const t = document.getElementById("buscar-cliente").value.toLowerCase();
+        document.querySelectorAll(".cli-item").forEach(i => {
+            const n = i.querySelector(".c-nombre-txt").innerText.toLowerCase();
+            const tel = i.querySelector(".c-tel-txt").innerText.toLowerCase();
+            i.style.display = (n.includes(t) || tel.includes(t)) ? "flex" : "none";
+        });
+    };
+
+    window.verificarClienteExistente = (tel) => {
+        const t = tel.replace(/\s/g, '');
+        const existe = cClientes.find(c => c.telefono.replace(/\s/g, '') === t);
+        if(existe) {
+            alert(`¡Edras, este número ya es de ${existe.nombre}!`);
+            abrirPerfil(existe.id);
+        }
+    };
+
+    window.abrirPerfil = async (id) => {
+        cIdActivo = id; const cli = cClientes.find(x => x.id === id);
+        const badge = document.getElementById("perfil-tipo-badge");
+        badge.innerText = cli.tipoCliente || 'Ambos';
+        badge.style.background = cli.tipoCliente === 'Crédito' ? 'var(--danger)' : 'var(--success)';
+        document.getElementById("perfil-nombre").innerText = cli.nombre;
+        document.getElementById("perfil-saldo").innerText = `₡${cli.saldo || 0}`;
+        document.getElementById("perfil-tel").innerText = "📱 WhatsApp: " + cli.telefono;
+        
+        const loc = [cli.provincia, cli.canton, cli.distrito].filter(Boolean).join(", ");
+        document.getElementById("perfil-dir").innerText = loc ? `📍 ${loc}\n${cli.direccion || ''}` : "📍 Sin dirección";
+        
+        document.getElementById("perfil-nota-texto").innerText = cli.notas || "";
+        document.getElementById("perfil-nota-privada").style.display = cli.notas ? "block" : "none";
+        document.getElementById("modal-perfil").style.display = "flex";
+        
+        const hDiv = document.getElementById("perfil-historial"); hDiv.innerHTML = "Cargando...";
+        const [sP, sA] = await Promise.all([
+            getDocs(query(collection(db, "pedidos"), where("idCliente", "==", id))),
+            getDocs(query(collection(db, "abonos"), where("idCliente", "==", id)))
+        ]);
+        let movs = [];
+        sP.forEach(d => movs.push({...d.data(), idM: d.id, tM: 'Compra'}));
+        sA.forEach(d => movs.push({...d.data(), idM: d.id, tM: 'Abono'}));
+        movs.sort((a,b) => b.fecha?.toDate() - a.fecha?.toDate());
+        hDiv.innerHTML = movs.map(m => `<div style="background:#f0f0f0; padding:8px; border-radius:10px; margin-bottom:5px; font-size:11px; border-left:4px solid ${m.tM==='Abono'?'green':'red'}">
+            <b>${m.tM==='Abono'?'Abono':m.producto}</b> - ₡${m.tM==='Abono'?m.monto:m.total}<br>${m.fecha?.toDate()?.toLocaleString()}
+        </div>`).join("") || "Sin movimientos.";
+    };
+
+    window.abrirEditarCliente = () => {
+        const c = cClientes.find(x => x.id === cIdActivo);
+        document.getElementById("ec-id").value = c.id;
+        document.getElementById("ec-nombre").value = c.nombre;
+        document.getElementById("ec-tel").value = c.telefono;
+        document.getElementById("ec-tipo").value = c.tipoCliente || "Ambos";
+        
+        // Carga en cascada de ubicación
+        document.getElementById("ec-provincia").value = c.provincia || "";
+        window.actualizarCantones('ec');
+        document.getElementById("ec-canton").value = c.canton || "";
+        window.actualizarDistritos('ec');
+        document.getElementById("ec-distrito").value = c.distrito || "";
+        
+        document.getElementById("ec-dir").value = c.direccion || "";
+        document.getElementById("ec-notas").value = c.notas || "";
+        document.getElementById("modal-editar-cliente").style.display = "flex";
+    };
+
+    document.getElementById("form-editar-cliente").onsubmit = async (e) => {
+        e.preventDefault();
+        await updateDoc(doc(db, "clientes", document.getElementById("ec-id").value), {
+            nombre: document.getElementById("ec-nombre").value,
+            tipoCliente: document.getElementById("ec-tipo").value,
+            provincia: document.getElementById("ec-provincia").value,
+            canton: document.getElementById("ec-canton").value,
+            distrito: document.getElementById("ec-distrito").value,
+            direccion: document.getElementById("ec-dir").value,
+            notas: document.getElementById("ec-notas").value
+        });
+        cerrarModales(); cargarClientes();
+    };
+
+    document.getElementById("form-cliente").onsubmit = async (e) => {
+        e.preventDefault();
+        await addDoc(collection(db, "clientes"), {
+            nombre: document.getElementById("c-nombre").value,
+            telefono: document.getElementById("c-tel").value,
+            tipoCliente: document.getElementById("c-tipo").value,
+            provincia: document.getElementById("c-provincia").value,
+            canton: document.getElementById("c-canton").value,
+            distrito: document.getElementById("c-distrito").value,
+            direccion: document.getElementById("c-dir").value,
+            notas: document.getElementById("c-notas").value,
+            saldo: 0, fechaRegistro: new Date()
+        });
+        document.getElementById("form-cliente").reset(); cargarClientes();
+    };
+
+    // --- LOGISTICA ---
+    async function cargarPedidos() {
+        const snap = await getDocs(query(collection(db, "pedidos"), orderBy("fecha", "asc")));
+        cPedidos = []; snap.forEach(d => cPedidos.push({id: d.id, ...d.data()}));
+        renderLogistica();
+    }
+
+    function renderLogistica() {
+        const d = document.getElementById("lista-pedidos");
+        const filtrados = cPedidos.filter(p => (p.logistica || 'Para Pedir') === filtroActual);
+        d.innerHTML = filtrados.map(p => `<div class="item-row">
+            <div style="flex:1"><strong>${p.cliente}</strong><br><small>${p.producto} (₡${p.total})</small></div>
+            <button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="font-size:10px; padding:5px;">➜</button>
+        </div>`).join("") || "Vacío.";
+    }
+
+    window.avanzarPed = async (id, act) => {
+        const sig = act==='Para Pedir'?'Pendiente':(act==='Pendiente'?'Despachado':'Entregado');
+        await updateDoc(doc(db, "pedidos", id), {logistica: sig}); 
+        cargarPedidos();
+    };
+
+    window.filtrarLogi = (est, btn) => {
+        filtroActual = est;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); btn.classList.add('active');
+        renderLogistica();
+    };
+
+    // --- VENTAS ---
+    window.abrirVenta = (n, p) => { 
+        pSel = { n, p }; 
+        document.getElementById("info-venta").innerText = `${n} - ₡${p}`; 
+        document.getElementById("modal-cobro").style.display = "flex"; 
+    };
+
+    window.procesarVenta = async () => {
+        const idC = document.getElementById("select-cliente-venta").value;
+        const cli = cClientes.find(x => x.id === idC);
+        const tipo = document.getElementById("tipo-venta").value;
+        if(tipo === 'Crédito') await updateDoc(doc(db, "clientes", idC), { saldo: increment(pSel.p) });
+        await addDoc(collection(db, "pedidos"), { 
+            idCliente: idC, cliente: cli.nombre, producto: pSel.n, total: pSel.p, 
+            tipo, logistica: document.getElementById("estado-logistica").value, fecha: new Date() 
+        });
+        cerrarModales(); cargarTodo();
+    };
+
+    document.getElementById("form-perfume").onsubmit = async (e) => {
+        e.preventDefault();
+        const f = document.getElementById("p-file").files[0];
+        const s = await uploadBytes(ref(storage, `perfumes/${Date.now()}`), f);
+        const u = await getDownloadURL(s.ref);
+        await addDoc(collection(db, "perfumes"), {
+            nombre: document.getElementById("p-nombre").value, precio: Number(document.getElementById("p-precio").value),
+            imagen: u, fecha: new Date(), oculto: false, descripcion: document.getElementById("p-desc").value,
+            categoria: document.getElementById("p-cat").value
+        });
+        document.getElementById("form-perfume").reset(); cargarInventario();
+    };
+
+    window.registrarAbono = async () => {
+        const m = Number(document.getElementById("monto-abono").value);
+        if(m > 0) {
+            await addDoc(collection(db, "abonos"), { idCliente: cIdActivo, monto: m, fecha: new Date() });
+            await updateDoc(doc(db, "clientes", cIdActivo), { saldo: increment(-m) });
+            cargarClientes(); cerrarModales();
+        }
+    };
+
+    window.cerrarModales = () => document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none");
+</script>
+
+</body>
+</html>
