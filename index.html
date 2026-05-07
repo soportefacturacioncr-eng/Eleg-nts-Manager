@@ -411,7 +411,7 @@
     let cClientes = []; let cPedidos = []; let cProds = [];
     let pSel = null; let cIdActivo = null; let filtroActual = 'Para Pedir';
     let geoProvincias = {};
-    let pedidoAEliminar = null; // Variable para almacenar el ID temporalmente
+    let pedidoAEliminar = null; 
 
     window.abrirWABusiness = (telefono, mensaje = '') => {
         let phone = telefono ? `506${telefono.replace(/\s/g, '')}` : '';
@@ -663,7 +663,7 @@
         const t = tel.replace(/\s/g, '');
         const existe = cClientes.find(c => c.telefono.replace(/\s/g, '') === t);
         if(existe) {
-            alert(`¡Edras, este número ya es de ${existe.nombre}!`);
+            alert(`¡Este número ya es de ${existe.nombre}!`);
             abrirPerfil(existe.id);
         }
     };
@@ -782,7 +782,6 @@
         document.getElementById("btn-consolidar-container").style.display = (filtroActual === 'Para Pedir') ? 'block' : 'none';
 
         d.innerHTML = filtrados.map(p => {
-            // ACTUALIZACIÓN: Se llama a la función eliminarPed para abrir el modal
             let controles = `<button onclick="eliminarPed('${p.id}')" style="font-size:14px; padding:6px; background:var(--danger); color:white; border:none; border-radius:8px; margin-right:6px; cursor:pointer;" title="Eliminar/Borrar">🗑️</button>`;
             
             if (filtroActual !== 'Para Pedir') {
@@ -792,14 +791,16 @@
                 controles += `<button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="font-size:14px; padding:6px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;" title="Avanzar Paso">➜</button>`;
             }
 
+            // Validar si tiene el check para mostrar el ✅
+            const check = (filtroActual === 'Para Pedir' && p.yaSolicitado) ? ' ✅' : '';
+
             return `<div class="item-row">
-                <div style="flex:1"><strong>${p.cliente}</strong> <small>(${p.clienteTel})</small><br><small>${p.producto} (₡${p.total})</small></div>
+                <div style="flex:1"><strong>${p.cliente}</strong> <small>(${p.clienteTel})</small><br><small>${p.producto}${check} (₡${p.total})</small></div>
                 <div style="display:flex; align-items:center;">${controles}</div>
             </div>`;
         }).join("") || "No hay pedidos en esta etapa.";
     }
 
-    // ACTUALIZACIÓN: Modal de confirmación personalizado para eliminar
     window.eliminarPed = (id) => {
         pedidoAEliminar = id;
         document.getElementById("modal-confirmar").style.display = "flex";
@@ -829,13 +830,17 @@
         renderLogistica();
     };
 
-    window.generarConsolidadoWA = () => {
-        const pendientes = cPedidos.filter(p => (p.logistica || 'Para Pedir') === 'Para Pedir');
-        if (pendientes.length === 0) return alert("No hay pedidos 'Para Pedir' en este momento.");
+    window.generarConsolidadoWA = async () => {
+        // Filtrar pedidos que están en "Para Pedir" y que NO han sido solicitados aún
+        const pendientes = cPedidos.filter(p => (p.logistica || 'Para Pedir') === 'Para Pedir' && !p.yaSolicitado);
+        
+        if (pendientes.length === 0) return alert("No hay perfumes nuevos para reportar. Los que están en la lista ya fueron pedidos ✅.");
 
         let conteo = {};
+        let idsMarcados = [];
         
         pendientes.forEach(p => {
+            idsMarcados.push(p.id); // Guardamos el ID para ponerle el check en Firebase
             let nombreRaw = p.producto || "Desconocido";
             let qty = 1;
             
@@ -854,6 +859,11 @@
             msg += `• ${prod} *(x${conteo[prod]})*\n`;
         }
         
+        // Actualizamos Firebase para que queden marcados con el check internamente
+        for (let id of idsMarcados) {
+            await updateDoc(doc(db, "pedidos", id), { yaSolicitado: true });
+        }
+
         abrirWABusiness('', msg);
     };
 
