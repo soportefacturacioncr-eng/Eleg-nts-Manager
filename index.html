@@ -66,6 +66,14 @@
         label { display: block; margin-top: 10px; font-size: 10px; font-weight: bold; color: #999; }
         input, select, textarea { width: 100%; padding: 14px; margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 15px; box-sizing: border-box; }
         
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+        .checkbox-label { 
+            display: flex; align-items: center; background: #eee; padding: 6px 12px; 
+            border-radius: 20px; font-size: 12px; margin: 0; cursor: pointer; border: 1px solid transparent; transition: 0.2s;
+        }
+        .checkbox-label:has(input:checked) { background: rgba(212, 175, 55, 0.2); border-color: var(--primary); font-weight: bold; }
+        .checkbox-label input { margin: 0 6px 0 0; width: auto; padding: 0; cursor: pointer; }
+
         .btn-main { 
             background: var(--secondary); color: var(--primary); border: 2px solid var(--primary); 
             font-weight: bold; cursor: pointer; margin-top: 15px; padding: 15px; 
@@ -83,7 +91,7 @@
         .btn-wa-right { 
             background: #25d366; color: white; width: 52px; height: 52px; 
             border-radius: 16px; display: flex; align-items: center; justify-content: center; 
-            text-decoration: none; font-size: 26px; box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+            text-decoration: none; font-size: 26px; box-shadow: 0 4px 12px rgba(37,211,102,0.3); cursor: pointer;
         }
 
         .modal-overlay { 
@@ -94,7 +102,7 @@
         .modal-body { background: white; width: 90%; max-width: 420px; padding: 25px; border-radius: 30px; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
         
         .chip-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding: 5px 0; }
-        .chip { padding: 10px 16px; background: #eee; border-radius: 20px; font-size: 10px; border: none; font-weight: bold; white-space: nowrap; }
+        .chip { padding: 10px 16px; background: #eee; border-radius: 20px; font-size: 10px; border: none; font-weight: bold; white-space: nowrap; cursor: pointer;}
         .chip.active { background: var(--secondary); color: var(--primary); }
     </style>
 </head>
@@ -125,11 +133,47 @@
                     <input type="number" id="p-precio" placeholder="Precio (₡)" required>
                     <textarea id="p-desc" placeholder="Descripción..."></textarea>
                     <input type="url" id="p-video" placeholder="Link de Video">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div><label>Categoría:</label><select id="p-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option><option value="Infantil">Infantil</option></select></div>
-                        <div><label>Estilo:</label><select id="p-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho / Exclusivos">Nicho</option><option value="Económicos / Inspiraciones">Económicos</option></select></div>
+                    
+                    <label>Categoría (Selecciona una o más):</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Caballero"> Caballero</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Dama"> Dama</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Unisex"> Unisex</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Juvenil"> Juvenil</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Sets / Estuches"> Sets</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Body Splash"> Splash/Mists</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Cuidado Personal"> Cuidado Personal</label>
                     </div>
-                    <label>Ocasión:</label><select id="p-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Noche / Gala">Noche / Gala</option></select>
+
+                    <label>Estilo / Familia Olfativa (Múltiple):</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Diseñador"> Diseñador</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Árabes"> Árabes</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Nicho / Exclusivos"> Nicho</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Inspiraciones"> Inspiraciones</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Económicos"> Económicos</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Celebridad"> Celebridad</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Clásicos"> Clásicos</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Gourmand / Dulce"> Gourmand</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Fresco / Cítrico"> Fresco/Cítrico</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Amaderado"> Amaderado</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Floral"> Floral</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Oriental / Especiado"> Oriental</label>
+                    </div>
+
+                    <label>Ocasión / Uso (Múltiple):</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Sport"> Sport</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Diario"> Diario</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Oficina"> Oficina</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Noche"> Noche</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Gala"> Gala</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Casual"> Casual</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Romántico"> Romántico</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Verano / Calor"> Verano</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Invierno / Frío"> Invierno</label>
+                    </div>
+
                     <input type="file" id="p-file" accept="image/*" required>
                     <button type="submit" id="btn-p" class="btn-main">GUARDAR PRODUCTO</button>
                 </form>
@@ -145,6 +189,13 @@
                 <button onclick="filtrarLogi('Despachado', this)" class="chip">Camino 🚚</button>
                 <button onclick="filtrarLogi('Entregado', this)" class="chip">Entregados ✅</button>
             </div>
+            
+            <div id="btn-consolidar-container" style="margin-bottom: 15px; text-align: center;">
+                <button onclick="generarConsolidadoWA()" class="btn-main" style="background:#25d366; color:white; border:none; padding:10px; font-size:12px; margin-top:0;">
+                    <i class="fab fa-whatsapp"></i> Generar Resumen de Pedido (Solo Nombres)
+                </button>
+            </div>
+
             <div id="lista-pedidos"></div>
         </div>
 
@@ -201,6 +252,17 @@
                 
                 <button onclick="guardarRedes()" class="btn-main">GUARDAR REDES</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-confirmar" class="modal-overlay">
+    <div class="modal-body" style="text-align: center;">
+        <h2 style="border:none; padding:0; color:var(--danger); font-size:20px;">⚠️ Confirmar Eliminación</h2>
+        <p style="color: #555; margin-top: 15px; line-height: 1.5;">¿Estás seguro de que deseas <b>ELIMINAR</b> este perfume de la lista de logística? <br><br><small>Esta acción no se puede deshacer.</small></p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
+            <button onclick="cerrarModales()" class="btn-main" style="background: #e0e0e0; color: #333; border: 2px solid #ccc; margin-top:0;">Cancelar</button>
+            <button onclick="ejecutarEliminacion()" class="btn-main" style="background: var(--danger); color: white; border: 2px solid var(--danger); margin-top:0;">Sí, Borrar</button>
         </div>
     </div>
 </div>
@@ -281,11 +343,47 @@
             <label>Precio:</label><input type="number" id="e-precio" required>
             <textarea id="e-desc"></textarea>
             <input type="url" id="e-video" placeholder="Link Video">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div><label>Cat:</label><select id="e-cat"><option value="Caballero">Caballero</option><option value="Dama">Dama</option><option value="Unisex">Unisex</option><option value="Infantil">Infantil</option></select></div>
-                <div><label>Estilo:</label><select id="e-subcat"><option value="Diseñador">Diseñador</option><option value="Árabes">Árabes</option><option value="Nicho / Exclusivos">Nicho</option><option value="Económicos / Inspiraciones">Económicos</option></select></div>
+            
+            <label>Categoría (Selecciona una o más):</label>
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Caballero"> Caballero</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Dama"> Dama</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Unisex"> Unisex</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Juvenil"> Juvenil</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Sets / Estuches"> Sets</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Body Splash"> Splash/Mists</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Cuidado Personal"> Cuidado Personal</label>
             </div>
-            <label>Ocasión:</label><select id="e-uso"><option value="Sport / Diario">Sport / Diario</option><option value="Oficina">Oficina</option><option value="Noche / Gala">Noche / Gala</option></select>
+
+            <label>Estilo / Familia Olfativa (Múltiple):</label>
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Diseñador"> Diseñador</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Árabes"> Árabes</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Nicho / Exclusivos"> Nicho</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Inspiraciones"> Inspiraciones</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Económicos"> Económicos</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Celebridad"> Celebridad</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Clásicos"> Clásicos</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Gourmand / Dulce"> Gourmand</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Fresco / Cítrico"> Fresco/Cítrico</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Amaderado"> Amaderado</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Floral"> Floral</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Oriental / Especiado"> Oriental</label>
+            </div>
+
+            <label>Ocasión / Uso (Múltiple):</label>
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Sport"> Sport</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Diario"> Diario</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Oficina"> Oficina</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Noche"> Noche</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Gala"> Gala</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Casual"> Casual</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Romántico"> Romántico</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Verano / Calor"> Verano</label>
+                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Invierno / Frío"> Invierno</label>
+            </div>
+
             <input type="file" id="e-file" accept="image/*">
             <button type="submit" class="btn-main">GUARDAR CAMBIOS</button>
         </form>
@@ -294,7 +392,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, updateDoc, setDoc, query, orderBy, increment, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, setDoc, query, orderBy, increment, where, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -313,6 +411,28 @@
     let cClientes = []; let cPedidos = []; let cProds = [];
     let pSel = null; let cIdActivo = null; let filtroActual = 'Para Pedir';
     let geoProvincias = {};
+    let pedidoAEliminar = null; // Variable para almacenar el ID temporalmente
+
+    window.abrirWABusiness = (telefono, mensaje = '') => {
+        let phone = telefono ? `506${telefono.replace(/\s/g, '')}` : '';
+        let textParam = mensaje ? `text=${encodeURIComponent(mensaje)}` : '';
+        let queryParams = [];
+        
+        if (phone) queryParams.push(`phone=${phone}`);
+        if (mensaje) queryParams.push(textParam);
+        
+        let queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
+        let isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera);
+        
+        if (isAndroid) {
+            let intentUrl = `intent://send${queryString}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end;`;
+            window.open(intentUrl, '_blank');
+        } else {
+            let url = `https://wa.me/${phone}${mensaje ? '?text=' + encodeURIComponent(mensaje) : ''}`;
+            window.open(url, '_blank');
+        }
+    };
 
     window.verificarAcceso = () => {
         if (document.getElementById("pin-input").value === "2652") {
@@ -327,7 +447,6 @@
         initRealtime(); 
     }
 
-    // --- LOGICA DE MAPA OFICIAL ---
     async function cargarProvinciasAPI() {
         try {
             const res = await fetch("https://ubicaciones.paginasweb.cr/provincias.json");
@@ -373,9 +492,7 @@
         evt.currentTarget.classList.add("active");
     };
 
-    // --- SINCRONIZACIÓN EN TIEMPO REAL ---
     function initRealtime() {
-        // Inventario
         onSnapshot(query(collection(db, "perfumes"), orderBy("fecha", "desc")), (snap) => {
             const div = document.getElementById("lista-inventario"); div.innerHTML = ""; cProds = [];
             snap.forEach(d => {
@@ -394,10 +511,9 @@
                         </div>
                     </div></div>`;
             });
-            window.buscarCatalogo(); // Mantener filtro activo si se estaba buscando
+            window.buscarCatalogo();
         });
 
-        // Clientes
         onSnapshot(collection(db, "clientes"), (snap) => {
             cClientes = []; let totalC = 0;
             const sel = document.getElementById("select-cliente-venta"); sel.innerHTML = "";
@@ -409,17 +525,15 @@
             document.getElementById("dashboard-total-cobrar").innerText = `₡${totalC}`;
             renderClientesLista();
             if(cIdActivo && document.getElementById("modal-perfil").style.display === "flex") {
-                abrirPerfil(cIdActivo, false); // Actualizar perfil abierto sin parpadear
+                abrirPerfil(cIdActivo, false); 
             }
         });
 
-        // Pedidos Logística
         onSnapshot(query(collection(db, "pedidos"), orderBy("fecha", "desc")), (snap) => {
             cPedidos = []; snap.forEach(d => cPedidos.push({id: d.id, ...d.data()}));
             renderLogistica();
         });
 
-        // Ajustes Redes Sociales
         onSnapshot(doc(db, "configuracion", "redesSociales"), (docSnap) => {
             if(docSnap.exists()){
                 const data = docSnap.data();
@@ -432,7 +546,6 @@
         });
     }
 
-    // --- FUNCIONES DE INVENTARIO ---
     window.buscarCatalogo = () => {
         const t = document.getElementById("buscar-perfume").value.toLowerCase();
         document.querySelectorAll(".prod-item").forEach(i => {
@@ -451,9 +564,22 @@
         document.getElementById("e-precio").value = p.precio;
         document.getElementById("e-desc").value = p.descripcion || "";
         document.getElementById("e-video").value = p.video || "";
-        document.getElementById("e-cat").value = p.categoria || "Caballero";
-        document.getElementById("e-subcat").value = p.subcategoria || "Diseñador";
-        document.getElementById("e-uso").value = p.uso || "Sport / Diario";
+        
+        document.querySelectorAll('.e-cat-cb, .e-subcat-cb, .e-uso-cb').forEach(cb => cb.checked = false);
+        
+        if(p.categoria) p.categoria.split(',').map(s=>s.trim()).forEach(val => {
+            let el = document.querySelector(`.e-cat-cb[value="${val}"]`);
+            if(el) el.checked = true;
+        });
+        if(p.subcategoria) p.subcategoria.split(',').map(s=>s.trim()).forEach(val => {
+            let el = document.querySelector(`.e-subcat-cb[value="${val}"]`);
+            if(el) el.checked = true;
+        });
+        if(p.uso) p.uso.split(',').map(s=>s.trim()).forEach(val => {
+            let el = document.querySelector(`.e-uso-cb[value="${val}"]`);
+            if(el) el.checked = true;
+        });
+
         document.getElementById("e-img-actual").value = p.imagen;
         document.getElementById("modal-editar-perfume").style.display = "flex";
     };
@@ -467,14 +593,19 @@
             const snap = await uploadBytes(ref(storage, `perfumes/${Date.now()}`), file);
             url = await getDownloadURL(snap.ref);
         }
+        
+        const catValue = Array.from(document.querySelectorAll('.e-cat-cb:checked')).map(e=>e.value).join(', ');
+        const subcatValue = Array.from(document.querySelectorAll('.e-subcat-cb:checked')).map(e=>e.value).join(', ');
+        const usoValue = Array.from(document.querySelectorAll('.e-uso-cb:checked')).map(e=>e.value).join(', ');
+
         await updateDoc(doc(db, "perfumes", id), {
             nombre: document.getElementById("e-nombre").value,
             precio: Number(document.getElementById("e-precio").value),
             descripcion: document.getElementById("e-desc").value,
             video: document.getElementById("e-video").value,
-            categoria: document.getElementById("e-cat").value,
-            subcategoria: document.getElementById("e-subcat").value,
-            uso: document.getElementById("e-uso").value,
+            categoria: catValue || "No especificado",
+            subcategoria: subcatValue || "No especificado",
+            uso: usoValue || "No especificado",
             imagen: url
         });
         cerrarModales();
@@ -485,28 +616,35 @@
         const f = document.getElementById("p-file").files[0];
         const s = await uploadBytes(ref(storage, `perfumes/${Date.now()}`), f);
         const u = await getDownloadURL(s.ref);
+        
+        const catValue = Array.from(document.querySelectorAll('.p-cat-cb:checked')).map(e=>e.value).join(', ');
+        const subcatValue = Array.from(document.querySelectorAll('.p-subcat-cb:checked')).map(e=>e.value).join(', ');
+        const usoValue = Array.from(document.querySelectorAll('.p-uso-cb:checked')).map(e=>e.value).join(', ');
+
         await addDoc(collection(db, "perfumes"), {
             nombre: document.getElementById("p-nombre").value, precio: Number(document.getElementById("p-precio").value),
             imagen: u, fecha: new Date(), oculto: false, descripcion: document.getElementById("p-desc").value,
             video: document.getElementById("p-video").value,
-            categoria: document.getElementById("p-cat").value, subcategoria: document.getElementById("p-subcat").value, uso: document.getElementById("p-uso").value
+            categoria: catValue || "No especificado", 
+            subcategoria: subcatValue || "No especificado", 
+            uso: usoValue || "No especificado"
         });
         document.getElementById("form-perfume").reset();
     };
 
-    // --- FUNCIONES DE CLIENTES ---
     function renderClientesLista() {
         const div = document.getElementById("lista-clientes"); div.innerHTML = "";
         cClientes.sort((a,b) => a.nombre.localeCompare(b.nombre));
         cClientes.forEach(c => {
             const color = c.tipoCliente === 'Crédito' ? 'var(--danger)' : 'var(--success)';
+            
             div.innerHTML += `<div class="item-row cli-item" style="border-left-color:${c.saldo > 0 ? 'var(--danger)' : '#ccc'}">
                 <div onclick="abrirPerfil('${c.id}')" style="flex:1; cursor:pointer">
                     <strong class="c-nombre-txt">${c.nombre}</strong> <small class="c-tel-txt">(${c.telefono})</small>
                     <span style="background:${color}; color:white; font-size:8px; padding:2px 5px; border-radius:5px; margin-left:5px;">${c.tipoCliente || 'Ambos'}</span>
                     <br><small>Saldo: ₡${c.saldo || 0}</small>
                 </div>
-                <a href="https://wa.me/506${c.telefono.replace(/\s/g, '')}" target="_blank" class="btn-wa-right"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="22"></a>
+                <div onclick="abrirWABusiness('${c.telefono}')" class="btn-wa-right"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="22"></div>
             </div>`;
         });
         window.buscarClienteLista();
@@ -530,7 +668,6 @@
         }
     };
 
-    // Variable global para controlar unsubscribe del perfil
     let unsubHistorial = null;
 
     window.abrirPerfil = async (id, showModal = true) => {
@@ -545,7 +682,6 @@
         document.getElementById("perfil-tel").innerText = "📱 WhatsApp: " + cli.telefono;
         
         let provName = document.getElementById("c-provincia").querySelector(`option[value="${cli.provId}"]`)?.text || "";
-        let cantName = cli.cantId || ""; // Ocuparíamos cargar el select, por ahora lo simplificamos a ID o nada si no lo hemos renderizado. En la BD se guardan IDs.
         const loc = [provName, cli.cantId, cli.distId].filter(Boolean).join(", ");
         document.getElementById("perfil-dir").innerText = cli.direccion ? `📍 ${cli.direccion}` : "📍 Sin dirección exacta";
         
@@ -556,10 +692,8 @@
         
         const hDiv = document.getElementById("perfil-historial"); 
         
-        // Listener en tiempo real para historial usando clienteTel
-        if(unsubHistorial) unsubHistorial(); // Evitar multiples listeners
+        if(unsubHistorial) unsubHistorial(); 
         
-        // Simulación de unión de pedidos y abonos usando onSnapshot dual manual
         let movsPedidos = []; let movsAbonos = [];
         
         const renderHistorial = () => {
@@ -582,7 +716,7 @@
 
     window.abrirEditarCliente = async () => {
         const c = cClientes.find(x => x.id === cIdActivo);
-        document.getElementById("ec-id").value = c.id; // que es el telefono
+        document.getElementById("ec-id").value = c.id; 
         document.getElementById("ec-nombre").value = c.nombre;
         document.getElementById("ec-tel").value = c.telefono;
         document.getElementById("ec-tipo").value = c.tipoCliente || "Ambos";
@@ -616,7 +750,6 @@
     document.getElementById("form-cliente").onsubmit = async (e) => {
         e.preventDefault();
         const tel = document.getElementById("c-tel").value.trim();
-        // Cuidado de ID manual a Firebase para que Client app lo pueda leer.
         await setDoc(doc(db, "clientes", tel), {
             nombre: document.getElementById("c-nombre").value,
             telefono: tel,
@@ -634,7 +767,6 @@
     window.registrarAbono = async () => {
         const m = Number(document.getElementById("monto-abono").value);
         if(m > 0) {
-            // Guardamos con clienteTel como llave foránea correcta
             await addDoc(collection(db, "abonos"), { clienteTel: cIdActivo, monto: m, fecha: new Date() });
             await updateDoc(doc(db, "clientes", cIdActivo), { saldo: increment(-m) });
             document.getElementById("monto-abono").value = "";
@@ -646,11 +778,45 @@
     function renderLogistica() {
         const d = document.getElementById("lista-pedidos");
         const filtrados = cPedidos.filter(p => (p.logistica || 'Para Pedir') === filtroActual);
-        d.innerHTML = filtrados.map(p => `<div class="item-row">
-            <div style="flex:1"><strong>${p.cliente}</strong> <small>(${p.clienteTel})</small><br><small>${p.producto} (₡${p.total})</small></div>
-            <button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="font-size:10px; padding:5px;">➜</button>
-        </div>`).join("") || "No hay pedidos en esta etapa.";
+        
+        document.getElementById("btn-consolidar-container").style.display = (filtroActual === 'Para Pedir') ? 'block' : 'none';
+
+        d.innerHTML = filtrados.map(p => {
+            // ACTUALIZACIÓN: Se llama a la función eliminarPed para abrir el modal
+            let controles = `<button onclick="eliminarPed('${p.id}')" style="font-size:14px; padding:6px; background:var(--danger); color:white; border:none; border-radius:8px; margin-right:6px; cursor:pointer;" title="Eliminar/Borrar">🗑️</button>`;
+            
+            if (filtroActual !== 'Para Pedir') {
+                controles += `<button onclick="retrocederPed('${p.id}', '${filtroActual}')" style="font-size:14px; padding:6px; background:var(--warning); color:white; border:none; border-radius:8px; margin-right:6px; cursor:pointer;" title="Retroceder Paso">⬅️</button>`;
+            }
+            if (filtroActual !== 'Entregado') {
+                controles += `<button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="font-size:14px; padding:6px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;" title="Avanzar Paso">➜</button>`;
+            }
+
+            return `<div class="item-row">
+                <div style="flex:1"><strong>${p.cliente}</strong> <small>(${p.clienteTel})</small><br><small>${p.producto} (₡${p.total})</small></div>
+                <div style="display:flex; align-items:center;">${controles}</div>
+            </div>`;
+        }).join("") || "No hay pedidos en esta etapa.";
     }
+
+    // ACTUALIZACIÓN: Modal de confirmación personalizado para eliminar
+    window.eliminarPed = (id) => {
+        pedidoAEliminar = id;
+        document.getElementById("modal-confirmar").style.display = "flex";
+    };
+
+    window.ejecutarEliminacion = async () => {
+        if(pedidoAEliminar) {
+            await deleteDoc(doc(db, "pedidos", pedidoAEliminar));
+            pedidoAEliminar = null;
+            cerrarModales();
+        }
+    };
+
+    window.retrocederPed = async (id, act) => {
+        const ant = act === 'Entregado' ? 'Despachado' : (act === 'Despachado' ? 'Pendiente' : 'Para Pedir');
+        await updateDoc(doc(db, "pedidos", id), { logistica: ant });
+    };
 
     window.avanzarPed = async (id, act) => {
         const sig = act==='Para Pedir'?'Pendiente':(act==='Pendiente'?'Despachado':'Entregado');
@@ -663,7 +829,34 @@
         renderLogistica();
     };
 
-    // --- FUNCIONES DE VENTAS MANUALES ---
+    window.generarConsolidadoWA = () => {
+        const pendientes = cPedidos.filter(p => (p.logistica || 'Para Pedir') === 'Para Pedir');
+        if (pendientes.length === 0) return alert("No hay pedidos 'Para Pedir' en este momento.");
+
+        let conteo = {};
+        
+        pendientes.forEach(p => {
+            let nombreRaw = p.producto || "Desconocido";
+            let qty = 1;
+            
+            let match = nombreRaw.match(/(.*?)(?:\s*\(x(\d+)\))?$/);
+            if(match) {
+                let nombreReal = match[1].trim();
+                if(match[2]) qty = parseInt(match[2]);
+                
+                if(!conteo[nombreReal]) conteo[nombreReal] = 0;
+                conteo[nombreReal] += qty;
+            }
+        });
+
+        let msg = "*📝 LISTA DE PEDIDO - ELEGÁNTS*\n_Consolidado para Mayoristas_\n\n";
+        for (let prod in conteo) {
+            msg += `• ${prod} *(x${conteo[prod]})*\n`;
+        }
+        
+        abrirWABusiness('', msg);
+    };
+
     window.abrirVenta = (n, p) => { 
         pSel = { n, p }; 
         document.getElementById("info-venta").innerText = `${n} - ₡${p}`; 
@@ -688,7 +881,6 @@
         cerrarModales(); 
     };
 
-    // --- FUNCIONES DE AJUSTES ---
     window.guardarRedes = async () => {
         await setDoc(doc(db, "configuracion", "redesSociales"), {
             instagram: document.getElementById("rs-ig").value,
@@ -700,7 +892,10 @@
         alert("¡Redes guardadas! Se reflejarán inmediatamente en la app de clientes.");
     };
 
-    window.cerrarModales = () => document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none");
+    window.cerrarModales = () => {
+        document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none");
+        pedidoAEliminar = null; // Reiniciar variable de seguridad al cerrar
+    };
 </script>
 
 </body>
