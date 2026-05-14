@@ -13,6 +13,8 @@
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="theme-color" content="#1a1a1a">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         :root { 
             --primary: #d4af37; --secondary: #1a1a1a; --bg: #0f0f0f; 
@@ -38,11 +40,6 @@
             z-index: 4000; padding: 20px; box-sizing: border-box;
         }
 
-        .login-logo {
-            width: 200px; height: 200px; object-fit: contain; margin-bottom: 25px;
-            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
-        }
-
         .tabs { 
             display: flex; background: var(--secondary); position: sticky; top: 0; z-index: 100; 
             border-bottom: 3px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -64,7 +61,8 @@
         }
         h2 { color: var(--secondary); font-size: 1.1em; border-left: 5px solid var(--primary); padding-left: 12px; margin-top: 0; text-transform: uppercase; }
         label { display: block; margin-top: 10px; font-size: 10px; font-weight: bold; color: #999; }
-        input, select, textarea { width: 100%; padding: 14px; margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 15px; box-sizing: border-box; }
+        input[type="text"], input[type="number"], input[type="tel"], input[type="url"], select, textarea { width: 100%; padding: 14px; margin-top: 8px; border: 1px solid #e0e0e0; border-radius: 14px; font-size: 15px; box-sizing: border-box; outline: none; }
+        input[type="file"] { width: 100%; padding: 10px; margin-top: 8px; border: 1px dashed #ccc; border-radius: 14px; font-size: 13px; background: #fafafa; }
         
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
         .checkbox-label { 
@@ -104,6 +102,17 @@
         .chip-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding: 5px 0; }
         .chip { padding: 10px 16px; background: #eee; border-radius: 20px; font-size: 10px; border: none; font-weight: bold; white-space: nowrap; cursor: pointer;}
         .chip.active { background: var(--secondary); color: var(--primary); }
+        
+        .cat-badge { display: inline-block; padding: 3px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; color: white; margin-right: 4px; }
+        .badge-mayorista { background: #9b59b6; }
+        .badge-minorista { background: #3498db; }
+        .badge-credito { background: #e74c3c; }
+        .badge-contado { background: #2ecc71; }
+
+        /* Estilos Variantes de Tamaño */
+        .variante-row { display: grid; grid-template-columns: 2fr 2fr 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 12px; border: 1px dashed #ccc;}
+        .variante-row input { margin-top: 0; padding: 10px; font-size: 13px;}
+        .btn-eliminar-var { background: var(--danger); color: white; border: none; border-radius: 8px; height: 35px; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -111,7 +120,6 @@
 <div class="app-container">
     
     <div id="login-screen">
-        <img src="logo.png" alt="Elegánts" class="login-logo" onerror="this.src='https://via.placeholder.com/200?text=Elegánts'">
         <h2 style="color: var(--primary); border:none; padding:0; margin-bottom:20px; font-style: italic;">VIP Manager</h2>
         <input type="password" id="pin-input" placeholder="PIN" inputmode="numeric" style="padding:18px; text-align:center; border:none; letter-spacing:10px; font-size:22px; width:220px; background: rgba(255,255,255,0.1); color:white; border-radius: 15px;">
         <button onclick="verificarAcceso()" class="btn-main" style="width:220px; margin-top:20px; background: var(--primary); color: #000; border:none;">ENTRAR</button>
@@ -129,49 +137,48 @@
             <div class="card">
                 <h2>Ingreso de Fragancia</h2>
                 <form id="form-perfume">
-                    <input type="text" id="p-nombre" placeholder="Nombre" required>
-                    <input type="number" id="p-precio" placeholder="Precio (₡)" required>
-                    <textarea id="p-desc" placeholder="Descripción..."></textarea>
-                    <input type="url" id="p-video" placeholder="Link de Video">
+                    <input type="text" id="p-nombre" placeholder="Nombre de la Fragancia" required>
                     
-                    <label>Categoría (Selecciona una o más):</label>
+                    <label>Tamaños y Precios:</label>
+                    <div id="variantes-container">
+                        <div class="variante-row">
+                            <input type="text" class="v-ml" placeholder="Tamaño (ej. 100ml)" required>
+                            <input type="number" class="v-precio" placeholder="Precio ₡" required>
+                            <input type="number" class="v-stock" placeholder="Stock" required>
+                            <button type="button" class="btn-eliminar-var" onclick="this.parentElement.remove()" disabled><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="agregarVariante('variantes-container')" style="background:none; border:none; color:var(--info); font-weight:bold; font-size:12px; cursor:pointer; margin-top:10px; padding:0;">+ AGREGAR OTRO TAMAÑO</button>
+
+                    <input type="text" id="p-notas" placeholder="Notas (ej. Vainilla, Lavanda, Cítricos...)">
+                    
+                    <textarea id="p-desc" placeholder="Descripción..."></textarea>
+                    <input type="url" id="p-video" placeholder="Link de Video (Opcional)">
+                    
+                    <label>Categoría Principal:</label>
                     <div class="checkbox-group">
                         <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Caballero"> Caballero</label>
                         <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Dama"> Dama</label>
                         <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Unisex"> Unisex</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Juvenil"> Juvenil</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Sets / Estuches"> Sets</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Body Splash"> Splash/Mists</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Cuidado Personal"> Cuidado Personal</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-cat-cb" value="Infantil / Juvenil"> Juvenil</label>
                     </div>
 
-                    <label>Estilo / Familia Olfativa (Múltiple):</label>
+                    <label>Gama / Tipo:</label>
                     <div class="checkbox-group">
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Diseñador"> Diseñador</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Árabes"> Árabes</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Nicho / Exclusivos"> Nicho</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Inspiraciones"> Inspiraciones</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Económicos"> Económicos</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Celebridad"> Celebridad</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Clásicos"> Clásicos</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Gourmand / Dulce"> Gourmand</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Fresco / Cítrico"> Fresco/Cítrico</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Amaderado"> Amaderado</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Floral"> Floral</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-subcat-cb" value="Oriental / Especiado"> Oriental</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-gama-cb" value="Splash / Agüitas"> Splash/Agüitas</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-gama-cb" value="Inspiraciones"> Inspiraciones</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-gama-cb" value="Árabes"> Árabes</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-gama-cb" value="Diseñador"> Diseñador</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-gama-cb" value="Alta Gama / Nicho"> Alta Gama / Nicho</label>
                     </div>
 
-                    <label>Ocasión / Uso (Múltiple):</label>
+                    <label>Familia Olfativa:</label>
                     <div class="checkbox-group">
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Sport"> Sport</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Diario"> Diario</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Oficina"> Oficina</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Noche"> Noche</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Gala"> Gala</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Casual"> Casual</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Romántico"> Romántico</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Verano / Calor"> Verano</label>
-                        <label class="checkbox-label"><input type="checkbox" class="p-uso-cb" value="Invierno / Frío"> Invierno</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-fam-cb" value="Dulce / Gourmand"> Dulce/Gourmand</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-fam-cb" value="Fresco / Cítrico"> Fresco/Cítrico</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-fam-cb" value="Amaderado"> Amaderado</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-fam-cb" value="Floral / Frutal"> Floral/Frutal</label>
+                        <label class="checkbox-label"><input type="checkbox" class="p-fam-cb" value="Oriental / Especiado"> Oriental</label>
                     </div>
 
                     <input type="file" id="p-file" accept="image/*" required>
@@ -189,13 +196,6 @@
                 <button onclick="filtrarLogi('Despachado', this)" class="chip">Camino 🚚</button>
                 <button onclick="filtrarLogi('Entregado', this)" class="chip">Entregados ✅</button>
             </div>
-            
-            <div id="btn-consolidar-container" style="margin-bottom: 15px; text-align: center;">
-                <button onclick="generarConsolidadoWA()" class="btn-main" style="background:#25d366; color:white; border:none; padding:10px; font-size:12px; margin-top:0;">
-                    <i class="fab fa-whatsapp"></i> Generar Resumen de Pedido (Solo Nombres)
-                </button>
-            </div>
-
             <div id="lista-pedidos"></div>
         </div>
 
@@ -208,13 +208,21 @@
             <div class="card">
                 <h2>Nuevo Cliente</h2>
                 <form id="form-cliente">
-                    <label>WhatsApp (Código Único sin espacios):</label>
+                    <label>WhatsApp (Sin espacios):</label>
                     <input type="tel" id="c-tel" placeholder="88888888" required onblur="verificarClienteExistente(this.value)">
                     <input type="text" id="c-nombre" placeholder="Nombre completo" required>
-                    <div style="margin-top: 10px;">
-                        <label>Modalidad:</label>
-                        <select id="c-tipo"><option value="Ambos">Ambos</option><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div>
+                            <label>Modalidad de Pago:</label>
+                            <select id="c-tipo"><option value="Contado">Contado</option><option value="Crédito">Crédito</option><option value="Ambos">Ambos</option></select>
+                        </div>
+                        <div>
+                            <label>Categoría (Precios):</label>
+                            <select id="c-categoria"><option value="Minorista">Minorista</option><option value="Mayorista">Mayorista</option></select>
+                        </div>
                     </div>
+
                     <label style="margin-top: 15px;">Ubicación Correos CR:</label>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                         <select id="c-provincia" onchange="actualizarCantones('c')"><option value="">Provincia</option></select>
@@ -223,7 +231,7 @@
                     </div>
                     <textarea id="c-dir" placeholder="Dirección exacta..."></textarea>
                     <textarea id="c-notas" placeholder="Notas internas..."></textarea>
-                    <button type="submit" id="btn-c-save" class="btn-main">REGISTRAR CLIENTE</button>
+                    <button type="submit" class="btn-main">REGISTRAR CLIENTE</button>
                 </form>
             </div>
             <input type="text" id="buscar-cliente" onkeyup="buscarClienteLista()" placeholder="🔍 Buscar por nombre o teléfono..." style="margin-bottom: 15px; width:100%;">
@@ -231,50 +239,84 @@
         </div>
 
         <div id="tab-ajustes" class="content">
+            <div class="card" style="border: 2px solid var(--primary);">
+                <h2><i class="fas fa-paint-brush"></i> Diseño de la Tienda VIP</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Sube las imágenes directamente de tu galería para personalizar la página de clientes.</p>
+                
+                <label>Fondo de Pantalla (Recomendado: Vertical para celular):</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                    <img id="preview-fondo" src="" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #eee; display: none;">
+                    <input type="file" id="diseno-fondo-file" accept="image/*" style="flex: 1;">
+                </div>
+                <input type="hidden" id="current-fondo-url">
+
+                <label style="margin-top: 15px;">Logo Superior (Recomendado: PNG sin fondo):</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                    <img id="preview-logo" src="" style="width: 50px; height: 50px; border-radius: 8px; object-fit: contain; background: #eee; display: none;">
+                    <input type="file" id="diseno-logo-file" accept="image/*" style="flex: 1;">
+                </div>
+                <input type="hidden" id="current-logo-url">
+
+                <button id="btn-guardar-diseno" onclick="guardarDiseno()" class="btn-main" style="background: var(--primary); color: #000;">APLICAR DISEÑO</button>
+            </div>
+
             <div class="card">
-                <h2>Redes Sociales</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Agrega los links completos (incluyendo https://) para que aparezcan en la página del cliente.</p>
-                
-                <label>Instagram:</label>
-                <input type="url" id="rs-ig" placeholder="https://instagram.com/...">
-                
-                <label>Facebook:</label>
-                <input type="url" id="rs-fb" placeholder="https://facebook.com/...">
-                
-                <label>TikTok:</label>
-                <input type="url" id="rs-tk" placeholder="https://tiktok.com/@...">
-                
-                <label>Twitter / X:</label>
-                <input type="url" id="rs-tw" placeholder="https://x.com/...">
-                
-                <label>YouTube:</label>
-                <input type="url" id="rs-yt" placeholder="https://youtube.com/...">
-                
+                <h2><i class="fas fa-share-alt"></i> Redes Sociales</h2>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Agrega los links completos (incluyendo https://).</p>
+                <label>Instagram:</label><input type="url" id="rs-ig" placeholder="https://instagram.com/...">
+                <label>Facebook:</label><input type="url" id="rs-fb" placeholder="https://facebook.com/...">
+                <label>TikTok:</label><input type="url" id="rs-tk" placeholder="https://tiktok.com/@...">
+                <label>Twitter / X:</label><input type="url" id="rs-tw" placeholder="https://x.com/...">
+                <label>YouTube:</label><input type="url" id="rs-yt" placeholder="https://youtube.com/...">
                 <button onclick="guardarRedes()" class="btn-main">GUARDAR REDES</button>
             </div>
         </div>
     </div>
 </div>
 
-<div id="modal-confirmar" class="modal-overlay">
-    <div class="modal-body" style="text-align: center;">
-        <h2 style="border:none; padding:0; color:var(--danger); font-size:20px;">⚠️ Confirmar Eliminación</h2>
-        <p style="color: #555; margin-top: 15px; line-height: 1.5;">¿Estás seguro de que deseas <b>ELIMINAR</b> este perfume de la lista de logística? <br><br><small>Esta acción no se puede deshacer.</small></p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
-            <button onclick="cerrarModales()" class="btn-main" style="background: #e0e0e0; color: #333; border: 2px solid #ccc; margin-top:0;">Cancelar</button>
-            <button onclick="ejecutarEliminacion()" class="btn-main" style="background: var(--danger); color: white; border: 2px solid var(--danger); margin-top:0;">Sí, Borrar</button>
-        </div>
+<div id="modal-editar-perfume" class="modal-overlay">
+    <div class="modal-body">
+        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
+        <h2>Modificar Perfume</h2>
+        <form id="form-editar-p">
+            <input type="hidden" id="e-id"><input type="hidden" id="e-img-actual">
+            <label>Nombre:</label><input type="text" id="e-nombre" required>
+            
+            <label>Tamaños y Precios:</label>
+            <div id="e-variantes-container"></div>
+            <button type="button" onclick="agregarVariante('e-variantes-container')" style="background:none; border:none; color:var(--info); font-weight:bold; font-size:12px; cursor:pointer; margin-top:10px; padding:0;">+ AGREGAR OTRO TAMAÑO</button>
+
+            <label style="margin-top:10px;">Notas Aromáticas:</label>
+            <input type="text" id="e-notas">
+            <textarea id="e-desc"></textarea>
+            <input type="url" id="e-video" placeholder="Link Video">
+            
+            <label>Categoría Principal:</label>
+            <div class="checkbox-group" id="e-cat-group"></div>
+            <label>Gama / Tipo:</label>
+            <div class="checkbox-group" id="e-gama-group"></div>
+            <label>Familia Olfativa:</label>
+            <div class="checkbox-group" id="e-fam-group"></div>
+
+            <input type="file" id="e-file" accept="image/*">
+            <button type="submit" class="btn-main">GUARDAR CAMBIOS</button>
+        </form>
     </div>
 </div>
 
 <div id="modal-perfil" class="modal-overlay">
     <div class="modal-body">
         <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
             <h2 id="perfil-nombre" style="margin:0; border:none;"></h2>
-            <span id="perfil-tipo-badge" style="padding:4px 8px; border-radius:10px; font-size:10px; font-weight:bold; color:white;"></span>
             <span onclick="abrirEditarCliente()" style="cursor:pointer; font-size:18px;">✏️</span>
         </div>
+        <div id="perfil-badges" style="margin-bottom: 10px;"></div>
+        
+        <div style="background:#e8f5e9; color:#2e7d32; padding:10px; border-radius:12px; font-size:14px; font-weight:bold; border:1px solid #c8e6c9; display:inline-block;">
+            <i class="fas fa-wallet"></i> Cash: <span id="perfil-cashback">₡0</span>
+        </div>
+        
         <div id="perfil-datos-contacto" style="margin-top:12px; font-size:13px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
             <p id="perfil-tel" style="font-weight:bold; color:var(--primary);"></p>
             <p id="perfil-dir" style="font-style:italic; color:#666;"></p>
@@ -288,8 +330,6 @@
             <div id="area-abono" style="display:none; margin-top:15px;"><input type="number" id="monto-abono" placeholder="₡ Monto"><button onclick="registrarAbono()" class="btn-main" style="background:var(--success); color:white; border:none;">REGISTRAR ABONO</button></div>
             <button id="btn-show-abono" onclick="this.style.display='none'; document.getElementById('area-abono').style.display='block'" style="background:none; border:none; color:var(--info); font-size:12px; font-weight:bold; margin-top:10px;">+ REGISTRAR ABONO</button>
         </div>
-        <h3>Historial</h3>
-        <div id="perfil-historial"></div>
     </div>
 </div>
 
@@ -299,93 +339,26 @@
         <h2>EDITAR CLIENTE</h2>
         <form id="form-editar-cliente">
             <input type="hidden" id="ec-id">
-            <label>WhatsApp (Llave):</label>
-            <input type="tel" id="ec-tel" readonly style="background:#f0f0f0;">
-            <label>Nombre:</label>
-            <input type="text" id="ec-nombre" required>
-            <label>Modalidad:</label>
-            <select id="ec-tipo"><option value="Ambos">Ambos</option><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>
-            <label style="margin-top:15px;">Ubicación Correos CR:</label>
+            <label>WhatsApp:</label><input type="tel" id="ec-tel" readonly style="background:#f0f0f0;">
+            <label>Nombre:</label><input type="text" id="ec-nombre" required>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div><label>Modalidad:</label><select id="ec-tipo"><option value="Contado">Contado</option><option value="Crédito">Crédito</option><option value="Ambos">Ambos</option></select></div>
+                <div><label>Categoría:</label><select id="ec-categoria"><option value="Minorista">Minorista</option><option value="Mayorista">Mayorista</option></select></div>
+            </div>
+
+            <label style="margin-top:15px;">Elegánts Cash (Modificar Manual):</label>
+            <input type="number" id="ec-cashback" placeholder="₡ 0">
+
+            <label style="margin-top:15px;">Ubicación:</label>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                 <select id="ec-provincia" onchange="actualizarCantones('ec')"><option value="">Provincia</option></select>
                 <select id="ec-canton" onchange="actualizarDistritos('ec')"><option value="">Cantón</option></select>
                 <select id="ec-distrito"><option value="">Distrito</option></select>
             </div>
-            <textarea id="ec-dir" placeholder="Dirección exacta..."></textarea>
-            <label>Notas Privadas:</label>
-            <textarea id="ec-notas"></textarea>
+            <textarea id="ec-dir"></textarea>
+            <textarea id="ec-notas" placeholder="Notas Privadas..."></textarea>
             <button type="submit" class="btn-main">ACTUALIZAR DATOS</button>
-        </form>
-    </div>
-</div>
-
-<div id="modal-cobro" class="modal-overlay">
-    <div class="modal-body">
-        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
-        <h2>Confirmar Venta</h2>
-        <p id="info-venta" style="font-weight:bold; color:var(--primary); text-align:center;"></p>
-        <label>Cliente:</label><select id="select-cliente-venta"></select>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div><label>Pago:</label><select id="tipo-venta"><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select></div>
-            <div><label>Estado:</label><select id="estado-logistica"><option value="Para Pedir">Para Pedir 📦</option><option value="Pendiente">Espera ⏳</option></select></div>
-        </div>
-        <button onclick="procesarVenta()" class="btn-main" style="background:var(--success); color:white; border:none;">REGISTRAR VENTA</button>
-    </div>
-</div>
-
-<div id="modal-editar-perfume" class="modal-overlay">
-    <div class="modal-body">
-        <button onclick="cerrarModales()" style="float:right; border:none; background:none; font-size:24px;">✕</button>
-        <h2>Modificar Perfume</h2>
-        <form id="form-editar-p">
-            <input type="hidden" id="e-id"><input type="hidden" id="e-img-actual">
-            <label>Nombre:</label><input type="text" id="e-nombre" required>
-            <label>Precio:</label><input type="number" id="e-precio" required>
-            <textarea id="e-desc"></textarea>
-            <input type="url" id="e-video" placeholder="Link Video">
-            
-            <label>Categoría (Selecciona una o más):</label>
-            <div class="checkbox-group">
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Caballero"> Caballero</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Dama"> Dama</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Unisex"> Unisex</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Juvenil"> Juvenil</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Sets / Estuches"> Sets</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Body Splash"> Splash/Mists</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-cat-cb" value="Cuidado Personal"> Cuidado Personal</label>
-            </div>
-
-            <label>Estilo / Familia Olfativa (Múltiple):</label>
-            <div class="checkbox-group">
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Diseñador"> Diseñador</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Árabes"> Árabes</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Nicho / Exclusivos"> Nicho</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Inspiraciones"> Inspiraciones</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Económicos"> Económicos</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Celebridad"> Celebridad</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Clásicos"> Clásicos</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Gourmand / Dulce"> Gourmand</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Fresco / Cítrico"> Fresco/Cítrico</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Amaderado"> Amaderado</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Floral"> Floral</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-subcat-cb" value="Oriental / Especiado"> Oriental</label>
-            </div>
-
-            <label>Ocasión / Uso (Múltiple):</label>
-            <div class="checkbox-group">
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Sport"> Sport</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Diario"> Diario</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Oficina"> Oficina</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Noche"> Noche</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Gala"> Gala</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Casual"> Casual</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Romántico"> Romántico</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Verano / Calor"> Verano</label>
-                <label class="checkbox-label"><input type="checkbox" class="e-uso-cb" value="Invierno / Frío"> Invierno</label>
-            </div>
-
-            <input type="file" id="e-file" accept="image/*">
-            <button type="submit" class="btn-main">GUARDAR CAMBIOS</button>
         </form>
     </div>
 </div>
@@ -409,30 +382,10 @@
     const storage = getStorage(app);
 
     let cClientes = []; let cPedidos = []; let cProds = [];
-    let pSel = null; let cIdActivo = null; let filtroActual = 'Para Pedir';
+    let cIdActivo = null; let filtroActual = 'Para Pedir';
     let geoProvincias = {};
-    let pedidoAEliminar = null; 
 
-    window.abrirWABusiness = (telefono, mensaje = '') => {
-        let phone = telefono ? `506${telefono.replace(/\s/g, '')}` : '';
-        let textParam = mensaje ? `text=${encodeURIComponent(mensaje)}` : '';
-        let queryParams = [];
-        
-        if (phone) queryParams.push(`phone=${phone}`);
-        if (mensaje) queryParams.push(textParam);
-        
-        let queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
-
-        let isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera);
-        
-        if (isAndroid) {
-            let intentUrl = `intent://send${queryString}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end;`;
-            window.open(intentUrl, '_blank');
-        } else {
-            let url = `https://wa.me/${phone}${mensaje ? '?text=' + encodeURIComponent(mensaje) : ''}`;
-            window.open(url, '_blank');
-        }
-    };
+    window.formatPrice = (n) => new Intl.NumberFormat('es-CR').format(n || 0);
 
     window.verificarAcceso = () => {
         if (document.getElementById("pin-input").value === "2652") {
@@ -442,22 +395,17 @@
         } else { alert("PIN Incorrecto"); }
     };
 
-    async function cargarTodo() { 
-        await cargarProvinciasAPI();
-        initRealtime(); 
-    }
+    async function cargarTodo() { await cargarProvinciasAPI(); initRealtime(); }
 
     async function cargarProvinciasAPI() {
-        try {
-            const res = await fetch("https://ubicaciones.paginasweb.cr/provincias.json");
-            geoProvincias = await res.json();
-            let options = '<option value="">Provincia...</option>';
-            for(let key in geoProvincias) { options += `<option value="${key}">${geoProvincias[key]}</option>`; }
-            document.getElementById("c-provincia").innerHTML = options;
-            document.getElementById("ec-provincia").innerHTML = options;
-        } catch(e) { console.error("Error cargando provincias", e); }
+        const res = await fetch("https://ubicaciones.paginasweb.cr/provincias.json");
+        geoProvincias = await res.json();
+        let options = '<option value="">Provincia</option>';
+        for(let key in geoProvincias) options += `<option value="${key}">${geoProvincias[key]}</option>`;
+        document.getElementById("c-provincia").innerHTML = options;
+        document.getElementById("ec-provincia").innerHTML = options;
     }
-
+    
     window.actualizarCantones = async (prefix) => {
         const pId = document.getElementById(`${prefix}-provincia`).value;
         const selCant = document.getElementById(`${prefix}-canton`);
@@ -492,22 +440,68 @@
         evt.currentTarget.classList.add("active");
     };
 
+    // ===== LÓGICA DE VARIANTES (TAMAÑOS ML) =====
+    window.agregarVariante = (containerId) => {
+        const div = document.getElementById(containerId);
+        const row = document.createElement("div");
+        row.className = "variante-row";
+        row.innerHTML = `
+            <input type="text" class="v-ml" placeholder="Tamaño (ej. 150ml)" required>
+            <input type="number" class="v-precio" placeholder="Precio ₡" required>
+            <input type="number" class="v-stock" placeholder="Stock" required>
+            <button type="button" class="btn-eliminar-var" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+        `;
+        div.appendChild(row);
+    };
+
+    function obtenerVariantes(containerId) {
+        let vars = [];
+        document.getElementById(containerId).querySelectorAll('.variante-row').forEach(row => {
+            vars.push({
+                ml: row.querySelector('.v-ml').value,
+                precio: Number(row.querySelector('.v-precio').value),
+                stock: Number(row.querySelector('.v-stock').value)
+            });
+        });
+        return vars;
+    }
+
+    function pintarVariantesEdicion(vars) {
+        const div = document.getElementById("e-variantes-container"); div.innerHTML = "";
+        if(!vars || vars.length === 0) vars = [{ml: "100ml", precio: 0, stock: 0}];
+        
+        vars.forEach((v, idx) => {
+            div.innerHTML += `
+            <div class="variante-row">
+                <input type="text" class="v-ml" placeholder="Tamaño" value="${v.ml}" required>
+                <input type="number" class="v-precio" placeholder="Precio" value="${v.precio}" required>
+                <input type="number" class="v-stock" placeholder="Stock" value="${v.stock || 0}" required>
+                <button type="button" class="btn-eliminar-var" onclick="this.parentElement.remove()" ${idx===0 ? 'disabled' : ''}><i class="fas fa-trash"></i></button>
+            </div>`;
+        });
+    }
+
+    // ===== CARGA REALTIME =====
     function initRealtime() {
         onSnapshot(query(collection(db, "perfumes"), orderBy("fecha", "desc")), (snap) => {
             const div = document.getElementById("lista-inventario"); div.innerHTML = ""; cProds = [];
             snap.forEach(d => {
                 const p = d.data(); p.id = d.id; cProds.push(p);
                 const isOculto = p.oculto === true;
+                
+                let precioMostrar = p.precio;
+                if(p.variantes && p.variantes.length > 0) precioMostrar = p.variantes[0].precio;
+
                 div.innerHTML += `<div class="item-row prod-item" style="opacity: ${isOculto ? '0.5' : '1'}">
                     <div style="display:flex; gap:12px; align-items:center; width:100%;">
-                        <img src="${p.imagen}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
-                        <div style="flex:1"><strong class="p-nombre">${p.nombre}</strong><br><small>₡${p.precio}</small></div>
+                        <img src="${p.imagen}" style="width:50px; height:50px; border-radius:10px; object-fit:cover;">
+                        <div style="flex:1">
+                            <strong class="p-nombre" style="font-size:14px;">${p.nombre}</strong><br>
+                            <small>Desde ₡${window.formatPrice(precioMostrar)}</small>
+                        </div>
                         <div style="text-align:right;">
-                            <button onclick="abrirVenta('${p.nombre}', ${p.precio})" class="btn-main" style="width:auto; padding:6px 10px; font-size:10px;" ${isOculto ? 'disabled' : ''}>VENDER</button>
-                            <div style="margin-top:8px;">
-                                <span onclick="toggleOcultarP('${p.id}', ${isOculto})" style="cursor:pointer; margin-right:10px;">${isOculto ? '👁️' : '🚫'}</span>
-                                <span onclick="abrirEditarP('${p.id}')" style="cursor:pointer;">✏️</span>
-                            </div>
+                            <span onclick="toggleOcultarP('${p.id}', ${isOculto})" style="cursor:pointer; margin-right:10px;">${isOculto ? '👁️' : '🚫'}</span>
+                            <span onclick="abrirEditarP('${p.id}')" style="cursor:pointer;">✏️</span>
                         </div>
                     </div></div>`;
             });
@@ -516,22 +510,40 @@
 
         onSnapshot(collection(db, "clientes"), (snap) => {
             cClientes = []; let totalC = 0;
-            const sel = document.getElementById("select-cliente-venta"); sel.innerHTML = "";
             snap.forEach(d => {
                 const c = {id: d.id, ...d.data()}; cClientes.push(c);
-                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
                 if(c.saldo > 0) totalC += c.saldo;
             });
-            document.getElementById("dashboard-total-cobrar").innerText = `₡${totalC}`;
+            document.getElementById("dashboard-total-cobrar").innerText = `₡${window.formatPrice(totalC)}`;
             renderClientesLista();
-            if(cIdActivo && document.getElementById("modal-perfil").style.display === "flex") {
-                abrirPerfil(cIdActivo, false); 
-            }
         });
 
         onSnapshot(query(collection(db, "pedidos"), orderBy("fecha", "desc")), (snap) => {
             cPedidos = []; snap.forEach(d => cPedidos.push({id: d.id, ...d.data()}));
             renderLogistica();
+        });
+
+        // Cargar Ajustes CMS (Diseño y Redes)
+        onSnapshot(doc(db, "configuracion", "diseno"), (docSnap) => {
+            if(docSnap.exists()){
+                const d = docSnap.data();
+                
+                // Mostrar URLs y Thumbnails de Fondo
+                document.getElementById("current-fondo-url").value = d.fondoUrl || "";
+                if(d.fondoUrl) {
+                    const prevFondo = document.getElementById("preview-fondo");
+                    prevFondo.src = d.fondoUrl;
+                    prevFondo.style.display = "block";
+                }
+
+                // Mostrar URLs y Thumbnails de Logo
+                document.getElementById("current-logo-url").value = d.logoUrl || "";
+                if(d.logoUrl) {
+                    const prevLogo = document.getElementById("preview-logo");
+                    prevLogo.src = d.logoUrl;
+                    prevLogo.style.display = "block";
+                }
+            }
         });
 
         onSnapshot(doc(db, "configuracion", "redesSociales"), (docSnap) => {
@@ -546,41 +558,51 @@
         });
     }
 
-    window.buscarCatalogo = () => {
-        const t = document.getElementById("buscar-perfume").value.toLowerCase();
-        document.querySelectorAll(".prod-item").forEach(i => {
-            i.style.display = i.querySelector(".p-nombre").innerText.toLowerCase().includes(t) ? "flex" : "none";
-        });
-    };
+    // ===== GUARDADO DE PRODUCTOS =====
+    document.getElementById("form-perfume").onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btn-p"); btn.innerText = "Guardando..."; btn.disabled = true;
+        try {
+            const f = document.getElementById("p-file").files[0];
+            const s = await uploadBytes(ref(storage, `perfumes/${Date.now()}`), f);
+            const u = await getDownloadURL(s.ref);
+            
+            const vars = obtenerVariantes("variantes-container");
 
-    window.toggleOcultarP = async (id, isOculto) => {
-        await updateDoc(doc(db, "perfumes", id), { oculto: !isOculto });
+            await addDoc(collection(db, "perfumes"), {
+                nombre: document.getElementById("p-nombre").value, 
+                variantes: vars,
+                precio: vars[0].precio, // Backwards compatibility
+                stock: vars[0].stock,   // Backwards compatibility
+                notas: document.getElementById("p-notas").value,
+                descripcion: document.getElementById("p-desc").value,
+                video: document.getElementById("p-video").value,
+                categoriaPrincipal: Array.from(document.querySelectorAll('.p-cat-cb:checked')).map(e=>e.value),
+                gama: Array.from(document.querySelectorAll('.p-gama-cb:checked')).map(e=>e.value),
+                familiaOlfativa: Array.from(document.querySelectorAll('.p-fam-cb:checked')).map(e=>e.value),
+                imagen: u, fecha: new Date(), oculto: false
+            });
+            document.getElementById("form-perfume").reset();
+        } catch(e) { console.error(e); }
+        btn.innerText = "GUARDAR PRODUCTO"; btn.disabled = false;
     };
 
     window.abrirEditarP = (id) => {
         const p = cProds.find(x => x.id === id);
         document.getElementById("e-id").value = p.id;
         document.getElementById("e-nombre").value = p.nombre;
-        document.getElementById("e-precio").value = p.precio;
+        document.getElementById("e-notas").value = p.notas || "";
         document.getElementById("e-desc").value = p.descripcion || "";
         document.getElementById("e-video").value = p.video || "";
-        
-        document.querySelectorAll('.e-cat-cb, .e-subcat-cb, .e-uso-cb').forEach(cb => cb.checked = false);
-        
-        if(p.categoria) p.categoria.split(',').map(s=>s.trim()).forEach(val => {
-            let el = document.querySelector(`.e-cat-cb[value="${val}"]`);
-            if(el) el.checked = true;
-        });
-        if(p.subcategoria) p.subcategoria.split(',').map(s=>s.trim()).forEach(val => {
-            let el = document.querySelector(`.e-subcat-cb[value="${val}"]`);
-            if(el) el.checked = true;
-        });
-        if(p.uso) p.uso.split(',').map(s=>s.trim()).forEach(val => {
-            let el = document.querySelector(`.e-uso-cb[value="${val}"]`);
-            if(el) el.checked = true;
-        });
-
         document.getElementById("e-img-actual").value = p.imagen;
+        
+        let varsToLoad = p.variantes && p.variantes.length > 0 ? p.variantes : [{ml: "100ml", precio: p.precio, stock: p.stock}];
+        pintarVariantesEdicion(varsToLoad);
+
+        document.getElementById("e-cat-group").innerHTML = document.querySelector(".p-cat-cb").parentElement.parentElement.innerHTML.replace(/p-cat-cb/g, 'e-cat-cb2');
+        document.getElementById("e-gama-group").innerHTML = document.querySelector(".p-gama-cb").parentElement.parentElement.innerHTML.replace(/p-gama-cb/g, 'e-gama-cb2');
+        document.getElementById("e-fam-group").innerHTML = document.querySelector(".p-fam-cb").parentElement.parentElement.innerHTML.replace(/p-fam-cb/g, 'e-fam-cb2');
+
         document.getElementById("modal-editar-perfume").style.display = "flex";
     };
 
@@ -594,62 +616,51 @@
             url = await getDownloadURL(snap.ref);
         }
         
-        const catValue = Array.from(document.querySelectorAll('.e-cat-cb:checked')).map(e=>e.value).join(', ');
-        const subcatValue = Array.from(document.querySelectorAll('.e-subcat-cb:checked')).map(e=>e.value).join(', ');
-        const usoValue = Array.from(document.querySelectorAll('.e-uso-cb:checked')).map(e=>e.value).join(', ');
+        const vars = obtenerVariantes("e-variantes-container");
 
         await updateDoc(doc(db, "perfumes", id), {
             nombre: document.getElementById("e-nombre").value,
-            precio: Number(document.getElementById("e-precio").value),
+            variantes: vars,
+            precio: vars[0].precio,
+            stock: vars[0].stock,
+            notas: document.getElementById("e-notas").value,
             descripcion: document.getElementById("e-desc").value,
             video: document.getElementById("e-video").value,
-            categoria: catValue || "No especificado",
-            subcategoria: subcatValue || "No especificado",
-            uso: usoValue || "No especificado",
+            categoriaPrincipal: Array.from(document.querySelectorAll('.e-cat-cb2:checked')).map(e=>e.value),
+            gama: Array.from(document.querySelectorAll('.e-gama-cb2:checked')).map(e=>e.value),
+            familiaOlfativa: Array.from(document.querySelectorAll('.e-fam-cb2:checked')).map(e=>e.value),
             imagen: url
         });
         cerrarModales();
     };
 
-    document.getElementById("form-perfume").onsubmit = async (e) => {
-        e.preventDefault();
-        const f = document.getElementById("p-file").files[0];
-        const s = await uploadBytes(ref(storage, `perfumes/${Date.now()}`), f);
-        const u = await getDownloadURL(s.ref);
-        
-        const catValue = Array.from(document.querySelectorAll('.p-cat-cb:checked')).map(e=>e.value).join(', ');
-        const subcatValue = Array.from(document.querySelectorAll('.p-subcat-cb:checked')).map(e=>e.value).join(', ');
-        const usoValue = Array.from(document.querySelectorAll('.p-uso-cb:checked')).map(e=>e.value).join(', ');
-
-        await addDoc(collection(db, "perfumes"), {
-            nombre: document.getElementById("p-nombre").value, precio: Number(document.getElementById("p-precio").value),
-            imagen: u, fecha: new Date(), oculto: false, descripcion: document.getElementById("p-desc").value,
-            video: document.getElementById("p-video").value,
-            categoria: catValue || "No especificado", 
-            subcategoria: subcatValue || "No especificado", 
-            uso: usoValue || "No especificado"
-        });
-        document.getElementById("form-perfume").reset();
-    };
-
+    // ===== LÓGICA DE CLIENTES =====
     function renderClientesLista() {
         const div = document.getElementById("lista-clientes"); div.innerHTML = "";
         cClientes.sort((a,b) => a.nombre.localeCompare(b.nombre));
         cClientes.forEach(c => {
-            const color = c.tipoCliente === 'Crédito' ? 'var(--danger)' : 'var(--success)';
+            const cat = c.categoriaCliente || 'Minorista';
+            const pago = c.tipoCliente || 'Contado';
             
+            let badgesHtml = `<span class="cat-badge ${cat==='Mayorista'?'badge-mayorista':'badge-minorista'}">${cat}</span>`;
+            badgesHtml += `<span class="cat-badge ${pago==='Crédito'?'badge-credito':'badge-contado'}">${pago}</span>`;
+
             div.innerHTML += `<div class="item-row cli-item" style="border-left-color:${c.saldo > 0 ? 'var(--danger)' : '#ccc'}">
                 <div onclick="abrirPerfil('${c.id}')" style="flex:1; cursor:pointer">
-                    <strong class="c-nombre-txt">${c.nombre}</strong> <small class="c-tel-txt">(${c.telefono})</small>
-                    <span style="background:${color}; color:white; font-size:8px; padding:2px 5px; border-radius:5px; margin-left:5px;">${c.tipoCliente || 'Ambos'}</span>
-                    <br><small>Saldo: ₡${c.saldo || 0}</small>
+                    <strong class="c-nombre-txt" style="font-size:15px;">${c.nombre}</strong> <small class="c-tel-txt">(${c.telefono})</small><br>
+                    <div style="margin: 4px 0;">${badgesHtml}</div>
+                    <small>Deuda: ₡${window.formatPrice(c.saldo || 0)} | <b style="color:var(--success)">Cash: ₡${window.formatPrice(c.cashback || 0)}</b></small>
                 </div>
-                <div onclick="abrirWABusiness('${c.telefono}')" class="btn-wa-right"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="22"></div>
             </div>`;
         });
-        window.buscarClienteLista();
     }
 
+    window.buscarCatalogo = () => {
+        const t = document.getElementById("buscar-perfume").value.toLowerCase();
+        document.querySelectorAll(".prod-item").forEach(i => {
+            i.style.display = i.querySelector(".p-nombre").innerText.toLowerCase().includes(t) ? "flex" : "none";
+        });
+    };
     window.buscarClienteLista = () => {
         const t = document.getElementById("buscar-cliente").value.toLowerCase();
         document.querySelectorAll(".cli-item").forEach(i => {
@@ -659,169 +670,70 @@
         });
     };
 
-    window.verificarClienteExistente = (tel) => {
-        const t = tel.replace(/\s/g, '');
-        const existe = cClientes.find(c => c.telefono.replace(/\s/g, '') === t);
-        if(existe) {
-            alert(`¡Este número ya es de ${existe.nombre}!`);
-            abrirPerfil(existe.id);
-        }
-    };
-
-    let unsubHistorial = null;
-
-    window.abrirPerfil = async (id, showModal = true) => {
+    window.abrirPerfil = async (id) => {
         cIdActivo = id; const cli = cClientes.find(x => x.id === id);
-        if(!cli) return;
-
-        const badge = document.getElementById("perfil-tipo-badge");
-        badge.innerText = cli.tipoCliente || 'Ambos';
-        badge.style.background = cli.tipoCliente === 'Crédito' ? 'var(--danger)' : 'var(--success)';
         document.getElementById("perfil-nombre").innerText = cli.nombre;
-        document.getElementById("perfil-saldo").innerText = `₡${cli.saldo || 0}`;
-        document.getElementById("perfil-tel").innerText = "📱 WhatsApp: " + cli.telefono;
+        document.getElementById("perfil-cashback").innerText = `₡${window.formatPrice(cli.cashback || 0)}`;
+        document.getElementById("perfil-saldo").innerText = `₡${window.formatPrice(cli.saldo || 0)}`;
         
-        let provName = document.getElementById("c-provincia").querySelector(`option[value="${cli.provId}"]`)?.text || "";
-        const loc = [provName, cli.cantId, cli.distId].filter(Boolean).join(", ");
-        document.getElementById("perfil-dir").innerText = cli.direccion ? `📍 ${cli.direccion}` : "📍 Sin dirección exacta";
-        
-        document.getElementById("perfil-nota-texto").innerText = cli.notas || "";
-        document.getElementById("perfil-nota-privada").style.display = cli.notas ? "block" : "none";
-        
-        if (showModal) document.getElementById("modal-perfil").style.display = "flex";
-        
-        const hDiv = document.getElementById("perfil-historial"); 
-        
-        if(unsubHistorial) unsubHistorial(); 
-        
-        let movsPedidos = []; let movsAbonos = [];
-        
-        const renderHistorial = () => {
-            let movs = [...movsPedidos, ...movsAbonos];
-            movs.sort((a,b) => (b.fecha?.toDate() || 0) - (a.fecha?.toDate() || 0));
-            hDiv.innerHTML = movs.map(m => `<div style="background:#f0f0f0; padding:8px; border-radius:10px; margin-bottom:5px; font-size:11px; border-left:4px solid ${m.tM==='Abono'?'green':'red'}">
-                <b>${m.tM==='Abono'?'Abono':m.producto}</b> - ₡${m.tM==='Abono'?m.monto:m.total}<br>${m.fecha?.toDate()?.toLocaleString()}
-            </div>`).join("") || "Sin movimientos.";
-        };
-
-        onSnapshot(query(collection(db, "pedidos"), where("clienteTel", "==", id)), (snap) => {
-            movsPedidos = []; snap.forEach(d => movsPedidos.push({...d.data(), idM: d.id, tM: 'Compra'}));
-            renderHistorial();
-        });
-        onSnapshot(query(collection(db, "abonos"), where("clienteTel", "==", id)), (snap) => {
-            movsAbonos = []; snap.forEach(d => movsAbonos.push({...d.data(), idM: d.id, tM: 'Abono'}));
-            renderHistorial();
-        });
+        let badgesHtml = `<span class="cat-badge ${cli.categoriaCliente==='Mayorista'?'badge-mayorista':'badge-minorista'}">${cli.categoriaCliente || 'Minorista'}</span>`;
+        document.getElementById("perfil-badges").innerHTML = badgesHtml;
+        document.getElementById("modal-perfil").style.display = "flex";
     };
 
     window.abrirEditarCliente = async () => {
         const c = cClientes.find(x => x.id === cIdActivo);
         document.getElementById("ec-id").value = c.id; 
         document.getElementById("ec-nombre").value = c.nombre;
-        document.getElementById("ec-tel").value = c.telefono;
-        document.getElementById("ec-tipo").value = c.tipoCliente || "Ambos";
-        
-        document.getElementById("ec-provincia").value = c.provId || "";
-        await window.actualizarCantones('ec');
-        document.getElementById("ec-canton").value = c.cantId || "";
-        await window.actualizarDistritos('ec');
-        document.getElementById("ec-distrito").value = c.distId || "";
-        
-        document.getElementById("ec-dir").value = c.direccion || "";
-        document.getElementById("ec-notas").value = c.notas || "";
+        document.getElementById("ec-tipo").value = c.tipoCliente || "Contado";
+        document.getElementById("ec-categoria").value = c.categoriaCliente || "Minorista";
+        document.getElementById("ec-cashback").value = c.cashback || 0;
         document.getElementById("modal-editar-cliente").style.display = "flex";
     };
 
     document.getElementById("form-editar-cliente").onsubmit = async (e) => {
         e.preventDefault();
-        const tel = document.getElementById("ec-id").value;
-        await setDoc(doc(db, "clientes", tel), {
+        const id = document.getElementById("ec-id").value;
+        await updateDoc(doc(db, "clientes", id), {
             nombre: document.getElementById("ec-nombre").value,
             tipoCliente: document.getElementById("ec-tipo").value,
-            provId: document.getElementById("ec-provincia").value,
-            cantId: document.getElementById("ec-canton").value,
-            distId: document.getElementById("ec-distrito").value,
-            direccion: document.getElementById("ec-dir").value,
-            notas: document.getElementById("ec-notas").value
-        }, { merge: true });
+            categoriaCliente: document.getElementById("ec-categoria").value,
+            cashback: Number(document.getElementById("ec-cashback").value)
+        });
         cerrarModales(); 
     };
 
-    document.getElementById("form-cliente").onsubmit = async (e) => {
-        e.preventDefault();
-        const tel = document.getElementById("c-tel").value.trim();
-        await setDoc(doc(db, "clientes", tel), {
-            nombre: document.getElementById("c-nombre").value,
-            telefono: tel,
-            tipoCliente: document.getElementById("c-tipo").value,
-            provId: document.getElementById("c-provincia").value,
-            cantId: document.getElementById("c-canton").value,
-            distId: document.getElementById("c-distrito").value,
-            direccion: document.getElementById("c-dir").value,
-            notas: document.getElementById("c-notas").value,
-            saldo: 0, fechaRegistro: new Date()
-        });
-        document.getElementById("form-cliente").reset();
-    };
-
-    window.registrarAbono = async () => {
-        const m = Number(document.getElementById("monto-abono").value);
-        if(m > 0) {
-            await addDoc(collection(db, "abonos"), { clienteTel: cIdActivo, monto: m, fecha: new Date() });
-            await updateDoc(doc(db, "clientes", cIdActivo), { saldo: increment(-m) });
-            document.getElementById("monto-abono").value = "";
-            cerrarModales();
-        }
-    };
-
-    // --- FUNCIONES DE LOGÍSTICA ---
+    // ===== LÓGICA DE LOGÍSTICA =====
     function renderLogistica() {
         const d = document.getElementById("lista-pedidos");
         const filtrados = cPedidos.filter(p => (p.logistica || 'Para Pedir') === filtroActual);
         
-        document.getElementById("btn-consolidar-container").style.display = (filtroActual === 'Para Pedir') ? 'block' : 'none';
-
         d.innerHTML = filtrados.map(p => {
-            let controles = `<button onclick="eliminarPed('${p.id}')" style="font-size:14px; padding:6px; background:var(--danger); color:white; border:none; border-radius:8px; margin-right:6px; cursor:pointer;" title="Eliminar/Borrar">🗑️</button>`;
-            
-            if (filtroActual !== 'Para Pedir') {
-                controles += `<button onclick="retrocederPed('${p.id}', '${filtroActual}')" style="font-size:14px; padding:6px; background:var(--warning); color:white; border:none; border-radius:8px; margin-right:6px; cursor:pointer;" title="Retroceder Paso">⬅️</button>`;
-            }
-            if (filtroActual !== 'Entregado') {
-                controles += `<button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="font-size:14px; padding:6px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;" title="Avanzar Paso">➜</button>`;
-            }
-
-            // Validar si tiene el check para mostrar el ✅
-            const check = (filtroActual === 'Para Pedir' && p.yaSolicitado) ? ' ✅' : '';
-
-            return `<div class="item-row">
-                <div style="flex:1"><strong>${p.cliente}</strong> <small>(${p.clienteTel})</small><br><small>${p.producto}${check} (₡${p.total})</small></div>
-                <div style="display:flex; align-items:center;">${controles}</div>
-            </div>`;
-        }).join("") || "No hay pedidos en esta etapa.";
+            let ctrl = `<button onclick="deleteDoc(doc(db, 'pedidos', '${p.id}'))" style="background:red; color:white; border:none; padding:5px; border-radius:5px;">🗑️</button>`;
+            if (filtroActual !== 'Para Pedir') ctrl += `<button onclick="retrocederPed('${p.id}', '${filtroActual}')" style="background:orange; border:none; padding:5px;">⬅️</button>`;
+            if (filtroActual !== 'Entregado') ctrl += `<button onclick="avanzarPed('${p.id}', '${filtroActual}')" style="background:green; color:white; border:none; padding:5px;">➜</button>`;
+            return `<div class="item-row"><div style="flex:1"><strong>${p.cliente}</strong><br><small>${p.producto} (₡${window.formatPrice(p.total)})</small></div><div>${ctrl}</div></div>`;
+        }).join("");
     }
 
-    window.eliminarPed = (id) => {
-        pedidoAEliminar = id;
-        document.getElementById("modal-confirmar").style.display = "flex";
-    };
+    window.avanzarPed = async (id, act) => {
+        const sig = act === 'Para Pedir' ? 'Pendiente' : (act === 'Pendiente' ? 'Despachado' : 'Entregado');
+        const pedido = cPedidos.find(p => p.id === id);
+        await updateDoc(doc(db, "pedidos", id), {logistica: sig}); 
 
-    window.ejecutarEliminacion = async () => {
-        if(pedidoAEliminar) {
-            await deleteDoc(doc(db, "pedidos", pedidoAEliminar));
-            pedidoAEliminar = null;
-            cerrarModales();
+        if (sig === 'Entregado' && pedido && pedido.clienteTel && pedido.cashbackGanado > 0) {
+            await updateDoc(doc(db, "clientes", pedido.clienteTel), { cashback: increment(pedido.cashbackGanado) });
         }
     };
 
     window.retrocederPed = async (id, act) => {
         const ant = act === 'Entregado' ? 'Despachado' : (act === 'Despachado' ? 'Pendiente' : 'Para Pedir');
+        const pedido = cPedidos.find(p => p.id === id);
         await updateDoc(doc(db, "pedidos", id), { logistica: ant });
-    };
 
-    window.avanzarPed = async (id, act) => {
-        const sig = act==='Para Pedir'?'Pendiente':(act==='Pendiente'?'Despachado':'Entregado');
-        await updateDoc(doc(db, "pedidos", id), {logistica: sig}); 
+        if (act === 'Entregado' && pedido && pedido.clienteTel && pedido.cashbackGanado > 0) {
+            await updateDoc(doc(db, "clientes", pedido.clienteTel), { cashback: increment(-pedido.cashbackGanado) });
+        }
     };
 
     window.filtrarLogi = (est, btn) => {
@@ -830,65 +742,49 @@
         renderLogistica();
     };
 
-    window.generarConsolidadoWA = async () => {
-        // Filtrar pedidos que están en "Para Pedir" y que NO han sido solicitados aún
-        const pendientes = cPedidos.filter(p => (p.logistica || 'Para Pedir') === 'Para Pedir' && !p.yaSolicitado);
-        
-        if (pendientes.length === 0) return alert("No hay perfumes nuevos para reportar. Los que están en la lista ya fueron pedidos ✅.");
+    // ===== CMS AJUSTES (GUARDADO DE ARCHIVOS DISEÑO) =====
+    window.guardarDiseno = async () => {
+        const btn = document.getElementById("btn-guardar-diseno");
+        btn.innerText = "Subiendo imágenes...";
+        btn.disabled = true;
 
-        let conteo = {};
-        let idsMarcados = [];
-        
-        pendientes.forEach(p => {
-            idsMarcados.push(p.id); // Guardamos el ID para ponerle el check en Firebase
-            let nombreRaw = p.producto || "Desconocido";
-            let qty = 1;
-            
-            let match = nombreRaw.match(/(.*?)(?:\s*\(x(\d+)\))?$/);
-            if(match) {
-                let nombreReal = match[1].trim();
-                if(match[2]) qty = parseInt(match[2]);
-                
-                if(!conteo[nombreReal]) conteo[nombreReal] = 0;
-                conteo[nombreReal] += qty;
+        try {
+            // Obtener URLs actuales ocultas
+            let fondoUrlFinal = document.getElementById("current-fondo-url").value;
+            let logoUrlFinal = document.getElementById("current-logo-url").value;
+
+            // Subir fondo si se seleccionó archivo
+            const fileFondo = document.getElementById("diseno-fondo-file").files[0];
+            if(fileFondo) {
+                const snapF = await uploadBytes(ref(storage, `diseno/fondo_${Date.now()}`), fileFondo);
+                fondoUrlFinal = await getDownloadURL(snapF.ref);
             }
-        });
 
-        let msg = "*📝 LISTA DE PEDIDO - ELEGÁNTS*\n_Consolidado para Mayoristas_\n\n";
-        for (let prod in conteo) {
-            msg += `• ${prod} *(x${conteo[prod]})*\n`;
+            // Subir logo si se seleccionó archivo
+            const fileLogo = document.getElementById("diseno-logo-file").files[0];
+            if(fileLogo) {
+                const snapL = await uploadBytes(ref(storage, `diseno/logo_${Date.now()}`), fileLogo);
+                logoUrlFinal = await getDownloadURL(snapL.ref);
+            }
+
+            // Guardar en Firestore
+            await setDoc(doc(db, "configuracion", "diseno"), {
+                fondoUrl: fondoUrlFinal,
+                logoUrl: logoUrlFinal
+            }, {merge: true});
+
+            // Limpiar inputs
+            document.getElementById("diseno-fondo-file").value = "";
+            document.getElementById("diseno-logo-file").value = "";
+
+            alert("¡Diseño actualizado con éxito en la tienda VIP!");
+        } catch (error) {
+            console.error("Error subiendo diseño:", error);
+            alert("Hubo un error al subir las imágenes.");
         }
-        
-        // Actualizamos Firebase para que queden marcados con el check internamente
-        for (let id of idsMarcados) {
-            await updateDoc(doc(db, "pedidos", id), { yaSolicitado: true });
-        }
 
-        abrirWABusiness('', msg);
-    };
-
-    window.abrirVenta = (n, p) => { 
-        pSel = { n, p }; 
-        document.getElementById("info-venta").innerText = `${n} - ₡${p}`; 
-        document.getElementById("modal-cobro").style.display = "flex"; 
-    };
-
-    window.procesarVenta = async () => {
-        const telCliente = document.getElementById("select-cliente-venta").value;
-        const cli = cClientes.find(x => x.id === telCliente);
-        const tipo = document.getElementById("tipo-venta").value;
-        if(tipo === 'Crédito') await updateDoc(doc(db, "clientes", telCliente), { saldo: increment(pSel.p) });
-        
-        await addDoc(collection(db, "pedidos"), { 
-            clienteTel: telCliente, 
-            cliente: cli.nombre, 
-            producto: pSel.n, 
-            total: pSel.p, 
-            tipo: tipo, 
-            logistica: document.getElementById("estado-logistica").value, 
-            fecha: new Date() 
-        });
-        cerrarModales(); 
+        btn.innerText = "APLICAR DISEÑO";
+        btn.disabled = false;
     };
 
     window.guardarRedes = async () => {
@@ -902,10 +798,7 @@
         alert("¡Redes guardadas! Se reflejarán inmediatamente en la app de clientes.");
     };
 
-    window.cerrarModales = () => {
-        document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none");
-        pedidoAEliminar = null; // Reiniciar variable de seguridad al cerrar
-    };
+    window.cerrarModales = () => { document.querySelectorAll(".modal-overlay").forEach(m => m.style.display = "none"); };
 </script>
 
 </body>
